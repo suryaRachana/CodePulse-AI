@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-[#0B0B12] border-b border-[#27272A] px-12 py-5 flex items-center justify-between">
@@ -60,7 +61,8 @@ function Navbar() {
       {/* Buttons */}
       <div className="flex items-center gap-5">
 
-        <button
+        <Link
+  to="/signin"
   className="
     text-gray-300
     border
@@ -74,21 +76,22 @@ function Navbar() {
   "
 >
   Sign In
-</button>
+</Link>
 
-
-        <button className="
-          bg-purple-500
-          text-white
-          px-5
-          py-2
-          rounded-lg
-          hover:bg-purple-600
-          transition
-        ">
-          Get Started
-        </button>
-
+        <Link
+  to="/get-started"
+  className="
+    bg-purple-500
+    text-white
+    px-5
+    py-2
+    rounded-lg
+    hover:bg-purple-600
+    transition
+  "
+>
+  Get Started
+</Link>
       </div>
 
 
