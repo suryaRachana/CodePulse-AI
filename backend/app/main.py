@@ -111,24 +111,68 @@ def get_dashboard():
 @app.post("/predict", response_model=PredictionResponse)
 def predict(request: PredictionRequest):
 
-    if request.lines_of_code <= 1000:
-        health_score = 95
-        technical_debt_score = 5
-        recommendation = "Excellent code quality"
+    health_score = 100
 
-    elif request.lines_of_code <= 5000:
-        health_score = 85
-        technical_debt_score = 15
-        recommendation = "Good code quality"
+    # Lines of Code
+    if request.lines_of_code > 5000:
+        health_score -= 10
+
+    # Code Complexity
+    if request.code_complexity > 50:
+        health_score -= 20
+
+    # Bugs
+    if request.bugs > 10:
+        health_score -= 20
+
+    # Code Duplication
+    if request.code_duplication > 20:
+        health_score -= 15
+
+    # Prevent negative score
+    if health_score < 0:
+        health_score = 0
+
+    technical_debt_score = 100 - health_score
+
+    # Risk Level
+    if technical_debt_score <= 20:
+       risk_level = "Low"
+    elif technical_debt_score <= 40:
+       risk_level = "Medium"
+    elif technical_debt_score <= 60:
+       risk_level = "High"
+    else:
+       risk_level = "Critical"
+    
+    # Recommendation
+    if health_score >= 90:
+        recommendation = "Excellent Code Quality"
+
+    elif health_score >= 75:
+        recommendation = "Good Code Quality"
+
+    elif health_score >= 60:
+        recommendation = "Average Code Quality"
+
+    elif health_score >= 40:
+        recommendation = "Poor Code Quality"
 
     else:
-        health_score = 70
-        technical_debt_score = 30
-        recommendation = "Needs refactoring"
+        recommendation = "Critical! Immediate Refactoring Required"
 
     return {
         "project_name": request.project_name,
         "health_score": health_score,
         "technical_debt_score": technical_debt_score,
-        "recommendation": recommendation
+        "recommendation": recommendation,
+        "risk_level": risk_level
     }
+
+
+
+
+
+@app.post("/analyze-project", response_model=PredictionResponse)
+def analyze_project(request: PredictionRequest):
+    return predict(request)

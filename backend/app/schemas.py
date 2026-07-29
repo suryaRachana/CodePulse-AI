@@ -18,10 +18,15 @@ class DashboardResponse(BaseModel):
 class PredictionRequest(BaseModel):
     project_name: str
     lines_of_code: int
+    code_complexity:int
+    bugs:int 
+    code_duplication:int 
 
 
 class PredictionResponse(BaseModel):
     project_name: str
     health_score: int
     technical_debt_score: int
-    recommendation: str
+    risk_level:str 
+    recommendation: str 
+    
