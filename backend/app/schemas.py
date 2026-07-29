@@ -30,3 +30,16 @@ class PredictionResponse(BaseModel):
     risk_level:str 
     recommendation: str 
     
+
+
+
+class HistoryResponse(BaseModel):
+    id: int
+    project_name: str
+    health_score: int
+    technical_debt_score: int
+    risk_level: str
+    recommendation: str
+
+    class Config:
+        from_attributes = True

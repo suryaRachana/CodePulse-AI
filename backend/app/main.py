@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import engine, SessionLocal
 from app import models
-from app.schemas import UserCreate, UserLogin,DashboardResponse,PredictionRequest, PredictionResponse
+from app.schemas import UserCreate, UserLogin,DashboardResponse,PredictionRequest, PredictionResponse,HistoryResponse
 from app.auth import create_user, login_user,create_access_token,get_current_user
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -109,7 +109,10 @@ def get_dashboard():
 
 
 @app.post("/predict", response_model=PredictionResponse)
-def predict(request: PredictionRequest):
+def predict(
+    request: PredictionRequest,
+    db: Session = Depends(get_db)
+):
 
     health_score = 100
 
@@ -137,42 +140,103 @@ def predict(request: PredictionRequest):
 
     # Risk Level
     if technical_debt_score <= 20:
-       risk_level = "Low"
+        risk_level = "Low"
     elif technical_debt_score <= 40:
-       risk_level = "Medium"
+        risk_level = "Medium"
     elif technical_debt_score <= 60:
-       risk_level = "High"
+        risk_level = "High"
     else:
-       risk_level = "Critical"
-    
+        risk_level = "Critical"
+
     # Recommendation
     if health_score >= 90:
         recommendation = "Excellent Code Quality"
-
     elif health_score >= 75:
         recommendation = "Good Code Quality"
-
     elif health_score >= 60:
         recommendation = "Average Code Quality"
-
     elif health_score >= 40:
         recommendation = "Poor Code Quality"
-
     else:
         recommendation = "Critical! Immediate Refactoring Required"
+
+    # Save to Database
+    analysis = models.ProjectAnalysis(
+        project_name=request.project_name,
+        health_score=health_score,
+        technical_debt_score=technical_debt_score,
+        risk_level=risk_level,
+        recommendation=recommendation
+    )
+
+    db.add(analysis)
+    db.commit()
+    db.refresh(analysis)
 
     return {
         "project_name": request.project_name,
         "health_score": health_score,
         "technical_debt_score": technical_debt_score,
-        "recommendation": recommendation,
-        "risk_level": risk_level
+        "risk_level": risk_level,
+        "recommendation": recommendation
     }
 
 
-
-
-
 @app.post("/analyze-project", response_model=PredictionResponse)
-def analyze_project(request: PredictionRequest):
-    return predict(request)
+def analyze_project(
+    request: PredictionRequest,
+    db: Session = Depends(get_db)
+):
+    return predict(request, db)
+
+
+
+
+
+@app.get("/history", response_model=list[HistoryResponse])
+def get_history(db: Session = Depends(get_db)):
+
+    history = db.query(models.ProjectAnalysis).all()
+
+    return history 
+
+
+
+
+@app.get("/history/{id}", response_model=HistoryResponse)
+def get_history_by_id(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    analysis = db.query(models.ProjectAnalysis).filter(
+        models.ProjectAnalysis.id == id
+    ).first()
+
+    return analysis  
+
+
+
+
+
+@app.delete("/history/{id}")
+def delete_history(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    analysis = db.query(models.ProjectAnalysis).filter(
+        models.ProjectAnalysis.id == id
+    ).first()
+
+    if not analysis:
+        return {
+            "message": "Analysis not found"
+        }
+
+    db.delete(analysis)
+    db.commit()
+
+    return {
+        "message": "Analysis deleted successfully"
+    }
