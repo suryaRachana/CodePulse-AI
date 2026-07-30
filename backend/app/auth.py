@@ -6,6 +6,7 @@ from app import models, schemas
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import Depends
 
+from app.database import SessionLocal
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = "your-secret-key"
@@ -98,11 +99,18 @@ def verify_token(token: str):
 
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
-
     email = verify_token(token)
 
     if email is None:
         return None
 
     return email
-    
+
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime,ForeignKey
 from sqlalchemy.sql import func
 from datetime import datetime
 from app.database import Base
+from sqlalchemy.orm import relationship
 
 
 class User(Base):
@@ -17,7 +18,7 @@ class User(Base):
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-
+    projects = relationship("ProjectAnalysis", back_populates="user")
 
 
 
@@ -31,3 +32,5 @@ class ProjectAnalysis(Base):
     risk_level = Column(String)
     recommendation = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    user = relationship("User", back_populates="projects")

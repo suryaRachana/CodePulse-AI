@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import engine, SessionLocal
 from app import models
 from app.schemas import UserCreate, UserLogin,DashboardResponse,PredictionRequest, PredictionResponse,HistoryResponse
-from app.auth import create_user, login_user,create_access_token,get_current_user
+from app.auth import create_user, login_user,create_access_token,get_current_user,verify_token
 from fastapi.security import OAuth2PasswordRequestForm
 
 app = FastAPI()
@@ -85,15 +85,7 @@ def login(
         "access_token": access_token,
         "token_type": "bearer"
     }
-
-
-@app.get("/profile")
-def get_profile(current_user: str = Depends(get_current_user)):
-    return {
-        "message": "Protected Route Accessed Successfully",
-        "email": current_user
-    }
-
+    
 
 @app.get("/dashboard", response_model=DashboardResponse)
 def get_dashboard():
@@ -107,12 +99,109 @@ def get_dashboard():
 
 
 
+@app.post("/analyze-project", response_model=PredictionResponse)
+def analyze_project(
+    request: PredictionRequest,
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return predict(request, current_user, db)
+
+
+
+
+
+@app.get("/history", response_model=list[HistoryResponse])
+def get_history(
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    db_user = db.query(models.User).filter(
+        models.User.email == current_user
+    ).first()
+
+    if not db_user:
+        return []
+
+    history = db.query(models.ProjectAnalysis).filter(
+        models.ProjectAnalysis.user_id == db_user.id
+    ).all()
+
+    return history
+
+
+
+@app.get("/history/{id}", response_model=HistoryResponse)
+def get_history_by_id(
+    id: int,
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    db_user = db.query(models.User).filter(
+        models.User.email == current_user
+    ).first()
+
+    if not db_user:
+        return {
+            "message": "User not found"
+        }
+
+    analysis = db.query(models.ProjectAnalysis).filter(
+        models.ProjectAnalysis.id == id,
+        models.ProjectAnalysis.user_id == db_user.id
+    ).first()
+
+    if not analysis:
+        return {
+            "message": "Analysis not found"
+        }
+
+    return analysis 
+
+
+
+
+
+@app.delete("/history/{id}")
+def delete_history(
+    id: int,
+    db: Session = Depends(get_db)
+):
+
+    analysis = db.query(models.ProjectAnalysis).filter(
+        models.ProjectAnalysis.id == id
+    ).first()
+
+    if not analysis:
+        return {
+            "message": "Analysis not found"
+        }
+
+    db.delete(analysis)
+    db.commit()
+
+    return {
+        "message": "Analysis deleted successfully"
+    }
 
 @app.post("/predict", response_model=PredictionResponse)
 def predict(
     request: PredictionRequest,
+    current_user: str = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+
+    # Get logged-in user
+    db_user = db.query(models.User).filter(
+        models.User.email == current_user
+    ).first()
+
+    if not db_user:
+        return {
+            "message": "User not found"
+        }
 
     health_score = 100
 
@@ -159,19 +248,23 @@ def predict(
         recommendation = "Poor Code Quality"
     else:
         recommendation = "Critical! Immediate Refactoring Required"
-
-    # Save to Database
+    
+    print("DB User ID:", db_user.id)
+    
+    # Save analysis to database
     analysis = models.ProjectAnalysis(
         project_name=request.project_name,
         health_score=health_score,
         technical_debt_score=technical_debt_score,
         risk_level=risk_level,
-        recommendation=recommendation
+        recommendation=recommendation,
+        user_id=db_user.id
     )
 
     db.add(analysis)
     db.commit()
     db.refresh(analysis)
+    print("Saved user_id =", analysis.user_id)
 
     return {
         "project_name": request.project_name,
@@ -179,64 +272,4 @@ def predict(
         "technical_debt_score": technical_debt_score,
         "risk_level": risk_level,
         "recommendation": recommendation
-    }
-
-
-@app.post("/analyze-project", response_model=PredictionResponse)
-def analyze_project(
-    request: PredictionRequest,
-    db: Session = Depends(get_db)
-):
-    return predict(request, db)
-
-
-
-
-
-@app.get("/history", response_model=list[HistoryResponse])
-def get_history(db: Session = Depends(get_db)):
-
-    history = db.query(models.ProjectAnalysis).all()
-
-    return history 
-
-
-
-
-@app.get("/history/{id}", response_model=HistoryResponse)
-def get_history_by_id(
-    id: int,
-    db: Session = Depends(get_db)
-):
-
-    analysis = db.query(models.ProjectAnalysis).filter(
-        models.ProjectAnalysis.id == id
-    ).first()
-
-    return analysis  
-
-
-
-
-
-@app.delete("/history/{id}")
-def delete_history(
-    id: int,
-    db: Session = Depends(get_db)
-):
-
-    analysis = db.query(models.ProjectAnalysis).filter(
-        models.ProjectAnalysis.id == id
-    ).first()
-
-    if not analysis:
-        return {
-            "message": "Analysis not found"
-        }
-
-    db.delete(analysis)
-    db.commit()
-
-    return {
-        "message": "Analysis deleted successfully"
     }
