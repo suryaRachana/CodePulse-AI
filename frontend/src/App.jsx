@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
@@ -12,58 +12,47 @@ import Footer from "./components/Footer";
 import SignIn from "./pages/SignIn";
 import GetStarted from "./pages/GetStarted";
 import Dashboard from "./pages/Dashboard";
-
+import Register from "./pages/Register";
+import Prediction from "./pages/Prediction";
+import History from "./pages/History";
 
 function App() {
   return (
-    <BrowserRouter>
+    <Routes>
 
-      <Routes>
-
-
-        {/* Landing Page */}
-        <Route
-          path="/"
-          element={
-            <>
-              <Navbar />
-              <Hero />
-              <HowItWorks />
-              <Features />
-              <Benefits />
-              <TechStack />
-              <CTA />
-              <Footer />
-            </>
-          }
-        />
-
-
-        {/* Sign In Page */}
-        <Route
-          path="/signin"
-          element={<SignIn />}
-        />
-
-
-       {/* Get Started Page */} 
+      {/* Landing Page */}
       <Route
-  path="/get-started"
-  element={<GetStarted />}
-/>
-<Route
-  path="/dashboard"
-  element={<Dashboard />}
-/>
+        path="/"
+        element={
+          <>
+            <Navbar />
+            <Hero />
+            <HowItWorks />
+            <Features />
+            <Benefits />
+            <TechStack />
+            <CTA />
+            <Footer />
+          </>
+        }
+      />
 
-      </Routes>
+      {/* Authentication */}
+      <Route path="/signin" element={<SignIn />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/get-started" element={<GetStarted />} />
 
+      {/* Dashboard */}
+      <Route path="/dashboard" element={<Dashboard />} />
 
+      {/* Prediction */}
+      <Route path="/prediction" element={<Prediction />} />
 
+      {/* History */}
+      <Route path="/history" element={<History />} />
 
-    </BrowserRouter>
+    </Routes>
   );
 }
-
 
 export default App;

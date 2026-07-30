@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
-
+from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, SessionLocal
 from app import models
 from app.schemas import UserCreate, UserLogin,DashboardResponse,PredictionRequest, PredictionResponse,HistoryResponse
@@ -8,6 +8,13 @@ from app.auth import create_user, login_user,create_access_token,get_current_use
 from fastapi.security import OAuth2PasswordRequestForm
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 models.Base.metadata.create_all(bind=engine)
 

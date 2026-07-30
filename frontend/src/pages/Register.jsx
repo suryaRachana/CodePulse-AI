@@ -1,61 +1,85 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 
-function SignIn() {
-  const navigate = useNavigate();
-
+function Register() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
+    if (password !== confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
     try {
-      const formData = new FormData();
+      const response = await API.post("/register", {
+        name: name,
+        email: email,
+        password: password,
+      });
 
-      formData.append("username", email);
-      formData.append("password", password);
+      alert(response.data.message);
 
-      const response = await API.post("/login", formData);
-
-      localStorage.setItem("token", response.data.access_token);
-
-      alert("Login Successful");
-
-      navigate("/dashboard");
+      setName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
 
     } catch (error) {
       console.error(error);
-      alert("Invalid Email or Password");
+      alert("Registration Failed");
     }
   };
 
   return (
     <section className="min-h-screen bg-[#0B0B12] flex items-center justify-center px-6">
 
-      <div className="
-        w-full
-        max-w-md
-        bg-[#161622]
-        border border-purple-500/20
-        rounded-2xl
-        p-8
-        shadow-xl
-        shadow-purple-500/10
-      ">
+      <div
+        className="
+          w-full
+          max-w-md
+          bg-[#161622]
+          border border-purple-500/20
+          rounded-2xl
+          p-8
+          shadow-xl
+          shadow-purple-500/10
+        "
+      >
 
         <h1 className="text-3xl font-bold text-white text-center">
           CodePulse <span className="text-purple-400">AI</span>
         </h1>
 
         <h2 className="text-white text-2xl font-semibold text-center mt-8">
-          Welcome Back
+          Create Account
         </h2>
 
         <p className="text-gray-400 text-center mt-3">
-          Sign in to continue analyzing your codebase
+          Start analyzing your projects with AI
         </p>
 
         <div className="mt-8 space-y-5">
+
+          <input
+            type="text"
+            placeholder="Full Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="
+              w-full
+              bg-[#0B0B12]
+              border border-gray-700
+              rounded-xl
+              px-4
+              py-3
+              text-white
+              outline-none
+              focus:border-purple-500
+            "
+          />
 
           <input
             type="email"
@@ -93,8 +117,26 @@ function SignIn() {
             "
           />
 
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="
+              w-full
+              bg-[#0B0B12]
+              border border-gray-700
+              rounded-xl
+              px-4
+              py-3
+              text-white
+              outline-none
+              focus:border-purple-500
+            "
+          />
+
           <button
-            onClick={handleLogin}
+            onClick={handleRegister}
             className="
               w-full
               bg-purple-500
@@ -105,29 +147,7 @@ function SignIn() {
               transition
             "
           >
-            Sign In
-          </button>
-
-          <div className="flex items-center gap-3">
-            <div className="h-px bg-gray-700 flex-1"></div>
-            <span className="text-gray-500 text-sm">OR</span>
-            <div className="h-px bg-gray-700 flex-1"></div>
-          </div>
-
-          <button
-            className="
-              w-full
-              border
-              border-gray-700
-              text-gray-300
-              py-3
-              rounded-xl
-              hover:border-purple-500
-              hover:text-white
-              transition
-            "
-          >
-            Continue with Google
+            Create Account
           </button>
 
         </div>
@@ -138,4 +158,4 @@ function SignIn() {
   );
 }
 
-export default SignIn;
+export default Register;
