@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import Register from "./pages/Register";
 import Prediction from "./pages/Prediction";
 import History from "./pages/History";
+import HistoryDetails from "./pages/HistoryDetails";
 
 function App() {
   return (
@@ -50,6 +51,8 @@ function App() {
 
       {/* History */}
       <Route path="/history" element={<History />} />
+
+      <Route path="/history/:id" element={<HistoryDetails />} />
 
     </Routes>
   );
