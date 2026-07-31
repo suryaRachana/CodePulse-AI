@@ -2,9 +2,9 @@ from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
-from app import models, schemas 
+from app import models, schemas
 from fastapi.security import OAuth2PasswordBearer
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 
 from app.database import SessionLocal
 
@@ -42,7 +42,7 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 
 def login_user(db: Session, user: schemas.UserLogin):
-    print("Current User Email:", current_user)
+    
 
     db_user = db.query(models.User).filter(
         models.User.email == user.email
@@ -103,10 +103,13 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     email = verify_token(token)
 
     if email is None:
-        return None
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     return email
-
 
 
 def get_db():

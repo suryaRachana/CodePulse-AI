@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, SessionLocal
@@ -80,9 +80,11 @@ def login(
     db_user = login_user(db, user)
 
     if not db_user:
-        return {
-            "message": "Invalid email or password"
-        }
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
     access_token = create_access_token(
         data={"sub": db_user.email}
@@ -115,7 +117,85 @@ def analyze_project(
     return predict(request, current_user, db)
 
 
+@app.get("/latest-analysis")
+def latest_analysis(
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_user = db.query(models.User).filter(
+        models.User.email == current_user
+    ).first()
 
+    if not db_user:
+        return {
+            "message": "User not found"
+        }
+
+    latest = db.query(models.ProjectAnalysis).filter(
+        models.ProjectAnalysis.user_id == db_user.id
+    ).order_by(
+        models.ProjectAnalysis.id.desc()
+    ).first()
+
+    if not latest:
+        return {
+            "message": "No analysis found"
+        }
+
+    return latest
+
+@app.get("/history-chart")
+def history_chart(
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_user = db.query(models.User).filter(
+        models.User.email == current_user
+    ).first()
+
+    if not db_user:
+        return []
+
+    history = db.query(models.ProjectAnalysis).filter(
+        models.ProjectAnalysis.user_id == db_user.id
+    ).order_by(
+        models.ProjectAnalysis.id
+    ).all()
+
+    return [
+        {
+            "project": item.project_name,
+            "health_score": item.health_score
+        }
+        for item in history
+    ]
+
+@app.get("/history-chart")
+def get_history_chart(
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    db_user = db.query(models.User).filter(
+        models.User.email == current_user
+    ).first()
+
+    if not db_user:
+        return []
+
+    history = db.query(models.ProjectAnalysis).filter(
+        models.ProjectAnalysis.user_id == db_user.id
+    ).order_by(
+        models.ProjectAnalysis.id.asc()
+    ).all()
+
+    return [
+        {
+            "project": analysis.project_name,
+            "health_score": analysis.health_score
+        }
+        for analysis in history
+    ]
 
 
 @app.get("/history", response_model=list[HistoryResponse])
@@ -200,6 +280,8 @@ def predict(
     db: Session = Depends(get_db)
 ):
     print("Current User Email:", current_user)
+    print("Current User Type:", type(current_user))
+
     # Get logged-in user
     db_user = db.query(models.User).filter(
         models.User.email == current_user
