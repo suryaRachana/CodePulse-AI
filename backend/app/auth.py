@@ -42,6 +42,7 @@ def create_user(db: Session, user: schemas.UserCreate):
 
 
 def login_user(db: Session, user: schemas.UserLogin):
+    print("Current User Email:", current_user)
 
     db_user = db.query(models.User).filter(
         models.User.email == user.email

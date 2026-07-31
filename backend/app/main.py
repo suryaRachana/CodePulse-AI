@@ -199,7 +199,7 @@ def predict(
     current_user: str = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-
+    print("Current User Email:", current_user)
     # Get logged-in user
     db_user = db.query(models.User).filter(
         models.User.email == current_user
