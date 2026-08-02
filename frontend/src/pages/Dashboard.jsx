@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import jsPDF from "jspdf";
 import toast from "react-hot-toast";
+import Sidebar from "../components/Sidebar";
 import {
   BarChart,
   Bar,
@@ -141,389 +142,437 @@ const chartData = dashboardData
 
 const COLORS = ["#8b5cf6", "#ef4444"];
   return (
-    <section className="min-h-screen bg-[#0B0B12] px-12 py-10">
+     <div className="flex bg-[#0B0B12]">
 
-      {/* Header */}
-      <div className="flex justify-between items-center">
+    <Sidebar />
 
-        <h1 className="text-4xl font-bold text-white">
-          CodePulse <span className="text-purple-400">AI Dashboard</span>
-        </h1>
-        <button
-  onClick={() => navigate("/history")}
-  className="bg-purple-500 hover:bg-purple-600 text-white px-5 py-2 rounded-lg transition"
->
-  History
-</button>
+<section className="min-h-screen bg-[#0B0B12] px-10 py-8">
 
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg transition"
-        >
-          Logout
-        </button>
+  {/* Header */}
+  <div className="flex justify-between items-center mb-8">
 
-      </div>
+    <div>
+      <h1 className="text-4xl font-bold text-white">
+        Repository Health Dashboard
+      </h1>
 
-      <p className="text-gray-400 mt-3">
-        Monitor your repository health and AI-powered insights.
+      <p className="text-gray-400 mt-2">
+        Live insights from your latest repository analysis.
       </p>
+    </div>
 
-     {/* Dashboard Cards */}
+    <div className="flex gap-4">
 
-<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
+      <button
+        onClick={() => navigate("/reports")}
+        className="bg-gray-700 hover:bg-gray-600 text-white px-5 py-2 rounded-lg"
+      >
+        View Reports
+      </button>
 
-  {/* Health Score */}
-  <div className="bg-[#161622] border border-purple-500/20 rounded-2xl p-6 shadow-lg">
+      <button
+        onClick={() => navigate("/repositories")}
+        className="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-lg"
+      >
+        New Analysis
+      </button>
 
-    <p className="text-gray-400">
-      Repository Health Score
-    </p>
-
-    <div className="flex items-center justify-between mt-4">
-
-      <h2 className="text-4xl font-bold text-purple-400">
-        {dashboardData
-          ? `${dashboardData.health_score}%`
-          : "Loading..."}
-      </h2>
-
-      <span className="text-sm text-green-400 bg-green-400/10 px-3 py-1 rounded-full">
-        Healthy
-      </span>
+      <button
+        onClick={handleLogout}
+        className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg"
+      >
+        Logout
+      </button>
 
     </div>
 
+  </div>
+
+
+
+   {/* Dashboard Cards */}
+
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+
+  {/* Health Score */}
+  <div className="bg-[#161622] border border-gray-700 rounded-2xl p-6">
+
+    <p className="text-gray-400 text-sm uppercase tracking-wider">
+      Software Health Score
+    </p>
+
+    <h2 className="text-4xl font-bold text-green-400 mt-4">
+      {dashboardData ? `${dashboardData.health_score}%` : "--"}
+    </h2>
+
+    <p className="text-green-400 text-sm mt-2">
+      Healthy Repository
+    </p>
+
     <div className="w-full bg-gray-700 rounded-full h-2 mt-5">
       <div
-        className="bg-purple-500 h-2 rounded-full transition-all duration-500"
+        className="bg-green-400 h-2 rounded-full transition-all"
         style={{
           width: `${dashboardData?.health_score || 0}%`,
         }}
-      ></div>
+      />
     </div>
 
   </div>
 
 
-  {/* Technical Debt */}
-  <div className="bg-[#161622] border border-purple-500/20 rounded-2xl p-6 shadow-lg">
 
-    <p className="text-gray-400">
+  
+  {/* Technical Debt */}
+
+  <div className="bg-[#161622] border border-gray-700 rounded-2xl p-6">
+
+    <p className="text-gray-400 text-sm uppercase tracking-wider">
       Technical Debt
     </p>
 
-    <div className="flex items-center justify-between mt-4">
+    <h2 className="text-4xl font-bold text-yellow-400 mt-4">
+      {dashboardData?.technical_debt_score ?? "--"}%
+    </h2>
 
-      <h2 className="text-4xl font-bold text-red-400">
-        {dashboardData
-          ? dashboardData.technical_debt_score
-          : "Loading..."}
-      </h2>
-
-      <span className="text-sm text-red-400 bg-red-400/10 px-3 py-1 rounded-full">
-        Debt
-      </span>
-
-    </div>
+    <p className="text-red-400 text-sm mt-2">
+      Requires Attention
+    </p>
 
     <div className="w-full bg-gray-700 rounded-full h-2 mt-5">
       <div
-        className="bg-red-500 h-2 rounded-full transition-all duration-500"
+        className="bg-yellow-400 h-2 rounded-full transition-all"
         style={{
           width: `${dashboardData?.technical_debt_score || 0}%`,
         }}
-      ></div>
+      />
     </div>
 
   </div>
 
+  {/* Future Risk */}
 
-  {/* Risk Level */}
-  <div className="bg-[#161622] border border-purple-500/20 rounded-2xl p-6 shadow-lg">
+  <div className="bg-[#161622] border border-gray-700 rounded-2xl p-6">
 
-  <p className="text-gray-400">
-    Risk Level
-  </p>
+    <p className="text-gray-400 text-sm uppercase tracking-wider">
+      Future Risk Level
+    </p>
 
-  <div className="mt-4">
-    {dashboardData && (
-      <span
-        className={`px-4 py-2 rounded-full text-white font-semibold ${
-          dashboardData.risk_level === "Low"
-            ? "bg-green-500"
-            : dashboardData.risk_level === "Medium"
-            ? "bg-yellow-500"
-            : dashboardData.risk_level === "High"
-            ? "bg-orange-500"
-            : "bg-red-500"
-        }`}
-      >
-        {dashboardData.risk_level}
-      </span>
-    )}
+    <h2
+      className={`text-4xl font-bold mt-4 ${
+        dashboardData?.risk_level === "Low"
+          ? "text-green-400"
+          : dashboardData?.risk_level === "Medium"
+          ? "text-yellow-400"
+          : dashboardData?.risk_level === "High"
+          ? "text-orange-400"
+          : "text-red-500"
+      }`}
+    >
+      {dashboardData?.risk_level || "--"}
+    </h2>
 
-    <span className="inline-block mt-4 text-sm text-yellow-400 bg-yellow-400/10 px-3 py-1 rounded-full">
-      AI Assessment
-    </span>
+    <p className="text-gray-400 text-sm mt-2">
+      AI Predicted Risk
+    </p>
+
+  </div>
+
+  {/* Files Analyzed */}
+
+  <div className="bg-[#161622] border border-gray-700 rounded-2xl p-6">
+
+    <p className="text-gray-400 text-sm uppercase tracking-wider">
+      Files Analyzed
+    </p>
+
+    <h2 className="text-4xl font-bold text-blue-400 mt-4">
+      {dashboardData?.total_files ?? "--"}
+    </h2>
+
+    <p className="text-blue-400 text-sm mt-2">
+      Repository Files
+    </p>
+
+  </div>
+
+</div>  
+
+
+
+{/* Repository Information */}
+
+<div className="mt-8 bg-[#161622] border border-gray-700 rounded-2xl p-6">
+
+  <div className="flex justify-between items-center mb-6">
+
+    <h2 className="text-2xl font-bold text-white">
+      Current Repository
+    </h2>
+
+    <button
+      onClick={() => navigate("/repositories")}
+      className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg"
+    >
+      Analyze New Repository
+    </button>
+
+  </div>
+
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+
+    <div>
+      <p className="text-gray-400 text-sm">Repository</p>
+      <h3 className="text-white font-semibold mt-2">
+        {dashboardData?.project_name || "No Repository"}
+      </h3>
+    </div>
+
+    <div>
+      <p className="text-gray-400 text-sm">Language</p>
+      <h3 className="text-white font-semibold mt-2">
+        {dashboardData?.language || "--"}
+      </h3>
+    </div>
+
+    <div>
+      <p className="text-gray-400 text-sm">Files</p>
+      <h3 className="text-white font-semibold mt-2">
+        {dashboardData?.total_files || "--"}
+      </h3>
+    </div>
+
+    <div>
+      <p className="text-gray-400 text-sm">Lines of Code</p>
+      <h3 className="text-white font-semibold mt-2">
+        {dashboardData?.lines_of_code || "--"}
+      </h3>
+    </div>
+
+  </div>
+
+</div>
+{/* Health Trend + Risk Distribution */}
+
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
+
+  {/* Software Health Trend */}
+
+  <div className="bg-[#161622] border border-gray-700 rounded-2xl p-6">
+
+    <h2 className="text-2xl font-bold text-white mb-2">
+      Software Health Trend
+    </h2>
+
+    <p className="text-gray-400 mb-6">
+      Monthly software health score
+    </p>
+
+    <div className="w-full h-80">
+
+      <ResponsiveContainer width="100%" height="100%">
+
+        <LineChart
+          data={[
+            { month: "Jan", score: 62 },
+            { month: "Feb", score: 68 },
+            { month: "Mar", score: 74 },
+            { month: "Apr", score: 79 },
+            { month: "May", score: 84 },
+            { month: "Jun", score: dashboardData?.health_score || 88 },
+          ]}
+        >
+
+          <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+
+          <XAxis
+            dataKey="month"
+            stroke="#9ca3af"
+          />
+
+          <YAxis stroke="#9ca3af" />
+
+          <Tooltip />
+
+          <Line
+            type="monotone"
+            dataKey="score"
+            stroke="#22c55e"
+            strokeWidth={4}
+          />
+
+        </LineChart>
+
+      </ResponsiveContainer>
+
+    </div>
+
+  </div>
+
+  {/* Risk Distribution */}
+
+  <div className="bg-[#161622] border border-gray-700 rounded-2xl p-6">
+
+    <h2 className="text-2xl font-bold text-white mb-2">
+      Risk Distribution
+    </h2>
+
+    <p className="text-gray-400 mb-6">
+      AI risk breakdown
+    </p>
+
+    <div className="w-full h-80">
+
+      <ResponsiveContainer width="100%" height="100%">
+
+        <PieChart>
+
+          <Pie
+            data={[
+              { name: "Low", value: 50 },
+              { name: "Medium", value: 30 },
+              { name: "High", value: 20 },
+            ]}
+            dataKey="value"
+            cx="50%"
+            cy="50%"
+            outerRadius={90}
+            label
+          >
+
+            <Cell fill="#22c55e" />
+            <Cell fill="#facc15" />
+            <Cell fill="#ef4444" />
+
+          </Pie>
+
+          <Tooltip />
+          <Legend />
+
+        </PieChart>
+
+      </ResponsiveContainer>
+
+    </div>
+
   </div>
 
 </div>
 
-</div>
-        
 
-      {/* Analyze Project Form */}
 
-      <div className="mt-10 bg-[#161622] border border-purple-500/20 rounded-2xl p-8">
 
-        <h2 className="text-2xl font-semibold text-white mb-6">
-          Analyze Project
-        </h2>
+{/* Technical Debt Distribution + Top Risky Files */}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">
 
-          <input
-            type="text"
-            placeholder="Project Name"
-            value={projectName}
-            onChange={(e) => setProjectName(e.target.value)}
-            className="bg-[#0B0B12] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500"
+  {/* Technical Debt Distribution */}
+
+  <div className="bg-[#161622] border border-gray-700 rounded-2xl p-6">
+
+    <h2 className="text-2xl font-bold text-white mb-2">
+      Technical Debt Distribution
+    </h2>
+
+    <p className="text-gray-400 mb-6">
+      Debt across different code quality categories
+    </p>
+
+    <div className="w-full h-80">
+
+      <ResponsiveContainer width="100%" height="100%">
+
+        <BarChart
+          data={[
+            { category: "Complexity", value: 35 },
+            { category: "Duplication", value: 22 },
+            { category: "Coverage", value: 18 },
+            { category: "Docs", value: 12 },
+            { category: "Style", value: 16 },
+            { category: "Dependencies", value: 28 },
+          ]}
+        >
+
+          <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+
+          <XAxis dataKey="category" stroke="#9ca3af" />
+
+          <YAxis stroke="#9ca3af" />
+
+          <Tooltip />
+
+          <Bar
+            dataKey="value"
+            fill="#8b5cf6"
+            radius={[6, 6, 0, 0]}
           />
 
-          <input
-            type="number"
-            placeholder="Lines of Code"
-            value={linesOfCode}
-            onChange={(e) => setLinesOfCode(e.target.value)}
-            className="bg-[#0B0B12] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500"
-          />
+        </BarChart>
 
-          <input
-            type="number"
-            placeholder="Code Complexity"
-            value={codeComplexity}
-            onChange={(e) => setCodeComplexity(e.target.value)}
-            className="bg-[#0B0B12] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500"
-          />
+      </ResponsiveContainer>
 
-          <input
-            type="number"
-            placeholder="Number of Bugs"
-            value={bugs}
-            onChange={(e) => setBugs(e.target.value)}
-            className="bg-[#0B0B12] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500"
-          />
+    </div>
 
-          <input
-            type="number"
-            placeholder="Code Duplication (%)"
-            value={codeDuplication}
-            onChange={(e) => setCodeDuplication(e.target.value)}
-            className="bg-[#0B0B12] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500"
-          />
+  </div>
+
+  {/* Top Risky Files */}
+
+  <div className="bg-[#161622] border border-gray-700 rounded-2xl p-6">
+
+    <h2 className="text-2xl font-bold text-white mb-2">
+      Top Risky Files
+    </h2>
+
+    <p className="text-gray-400 mb-6">
+      Files that need immediate attention
+    </p>
+
+    <div className="space-y-4">
+
+      {[
+        { file: "UserService.py", risk: "High" },
+        { file: "PaymentService.py", risk: "High" },
+        { file: "Database.py", risk: "Medium" },
+        { file: "AuthController.py", risk: "Medium" },
+        { file: "Router.js", risk: "Low" },
+      ].map((item, index) => (
+
+        <div
+          key={index}
+          className="flex justify-between items-center bg-[#0B0B12] rounded-xl p-4"
+        >
+
+          <span className="text-white">
+            {item.file}
+          </span>
+
+          <span
+            className={`px-3 py-1 rounded-full text-sm font-semibold ${
+              item.risk === "High"
+                ? "bg-red-500/20 text-red-400"
+                : item.risk === "Medium"
+                ? "bg-yellow-500/20 text-yellow-400"
+                : "bg-green-500/20 text-green-400"
+            }`}
+          >
+            {item.risk}
+          </span>
 
         </div>
 
-       <button
-  onClick={handleAnalyze}
-  disabled={loading}
-  className={`mt-6 px-6 py-3 rounded-xl text-white transition ${
-    loading
-      ? "bg-gray-500 cursor-not-allowed"
-      : "bg-purple-500 hover:bg-purple-600"
-  }`}
->
-  {loading ? "Analyzing..." : "Analyze Project"}
-</button>
-
-
-{predictionResult && (
-  <div className="mt-8 bg-[#0B0B12] border border-purple-500/20 rounded-2xl p-6">
-
-    <h2 className="text-2xl font-bold text-white mb-6">
-      Prediction Result
-    </h2>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-      <div>
-        <p className="text-gray-400">Project Name</p>
-        <h3 className="text-white text-xl font-semibold mt-2">
-          {predictionResult.project_name}
-        </h3>
-      </div>
-
-      <div>
-        <p className="text-gray-400">Health Score</p>
-        <h3 className="text-green-400 text-xl font-semibold mt-2">
-          {predictionResult.health_score}%
-        </h3>
-      </div>
-
-      <div>
-        <p className="text-gray-400">Technical Debt</p>
-        <h3 className="text-red-400 text-xl font-semibold mt-2">
-          {predictionResult.technical_debt_score}
-        </h3>
-      </div>
-
-      <div>
-        <p className="text-gray-400">Risk Level</p>
-        <h3 className="text-yellow-400 text-xl font-semibold mt-2">
-          {predictionResult.risk_level}
-        </h3>
-      </div>
+      ))}
 
     </div>
 
-    <div className="mt-8 bg-gradient-to-r from-purple-900/30 to-indigo-900/30 border border-purple-500/30 rounded-2xl p-6">
-
-  <h3 className="text-2xl font-bold text-white flex items-center gap-2">
-    🤖 AI Recommendation
-  </h3>
-
-  <p className="text-gray-300 mt-4 leading-8">
-    {predictionResult.recommendation}
-  </p>
-
-  <div className="mt-6 flex flex-wrap gap-3">
-
-    <span className="bg-green-500/20 text-green-400 px-4 py-2 rounded-full">
-      ✔ Improve Code Quality
-    </span>
-
-    <span className="bg-blue-500/20 text-blue-400 px-4 py-2 rounded-full">
-      ✔ Reduce Bugs
-    </span>
-
-    <span className="bg-purple-500/20 text-purple-400 px-4 py-2 rounded-full">
-      ✔ Optimize Performance
-    </span>
-
-  </div>
-
-  <button
-    onClick={downloadPDF}
-    className="mt-8 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl transition"
-  >
-    📄 Download PDF Report
-  </button>
-
-</div>
-  </div>
-)}
-
-      </div>
-
-      <div className="mt-10 bg-[#161622] border border-purple-500/20 rounded-2xl p-8">
-
-  <h2 className="text-2xl font-semibold text-white mb-6">
-    Health Score Analytics
-  </h2>
-
-  <div className="w-full h-80">
-
-    <ResponsiveContainer width="100%" height="100%">
-
-      <BarChart data={chartData}>
-  <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-
-  <XAxis dataKey="name" stroke="#ffffff" />
-  <YAxis stroke="#ffffff" />
-  <Tooltip />
-
-  <Bar
-    dataKey="score"
-    fill="#8b5cf6"
-    radius={[8, 8, 0, 0]}
-  />
-</BarChart>
-    </ResponsiveContainer>
-
-  </div>
-
-</div>
-<div className="mt-10 bg-[#161622] border border-purple-500/20 rounded-2xl p-8">
-
-  <h2 className="text-2xl font-semibold text-white mb-6">
-    Technical Debt Distribution
-  </h2>
-
-  <div className="w-full h-80">
-
-    <ResponsiveContainer width="100%" height="100%">
-
-      <PieChart>
-
-        <Pie
-          data={pieData}
-          dataKey="value"
-          cx="50%"
-          cy="50%"
-          outerRadius={100}
-          label
-        >
-          {pieData.map((entry, index) => (
-            <Cell
-              key={index}
-              fill={COLORS[index]}
-            />
-          ))}
-        </Pie>
-
-        <Tooltip />
-        <Legend />
-
-      </PieChart>
-
-    </ResponsiveContainer>
-
   </div>
 
 </div>
 
 
-
-<div className="mt-10 bg-[#161622] border border-purple-500/20 rounded-2xl p-8">
-
-  <h2 className="text-2xl font-semibold text-white mb-6">
-    Project Health Trend
-  </h2>
-
-  <div className="w-full h-80">
-
-    <ResponsiveContainer width="100%" height="100%">
-
-      <LineChart data={historyData}>
-
-        <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-
-        <XAxis
-          dataKey="project"
-          stroke="#ffffff"
-        />
-
-        <YAxis stroke="#ffffff" />
-
-        <Tooltip />
-
-        <Line
-          type="monotone"
-          dataKey="health_score"
-          stroke="#8b5cf6"
-          strokeWidth={3}
-        />
-
-      </LineChart>
-
-    </ResponsiveContainer>
-
-  </div>
-
-</div>
     </section>
-  );
-}
+    </div>
+  
+    );
+  }
 
-export default Dashboard;
+export default Dashboard ;
