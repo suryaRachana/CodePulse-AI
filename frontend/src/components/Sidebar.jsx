@@ -86,7 +86,7 @@ function Sidebar() {
 
       <div className="space-y-2">
 
-        <NavLink to="/ai-risk" className={menuClass}>
+        <NavLink to="/prediction" className={menuClass}>
           <FaBrain />
           AI Risk Prediction
         </NavLink>

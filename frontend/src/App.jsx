@@ -16,7 +16,11 @@ import Register from "./pages/Register";
 import Prediction from "./pages/Prediction";
 import History from "./pages/History";
 import HistoryDetails from "./pages/HistoryDetails";
-
+import Repositories from "./pages/Repositories";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
+import ExplainableAI from "./pages/ExplainableAI";
+import Refactoring from "./pages/Refactoring";
 function App() {
   return (
     <Routes>
@@ -53,7 +57,12 @@ function App() {
       <Route path="/history" element={<History />} />
 
       <Route path="/history/:id" element={<HistoryDetails />} />
+<Route path="/repositories" element={<Repositories />} />
 
+<Route path="/reports" element={<Reports />} />
+<Route path="/settings" element={<Settings />} />
+
+<Route path="/refactoring" element={<Refactoring />} />
     </Routes>
   );
 }
