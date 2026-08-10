@@ -1,3 +1,4 @@
+import os
 import ast
 import re
 
@@ -18,10 +19,13 @@ from app.services.github_service import (
     calculate_duplicate_code,
     calculate_repository_health
 )
+raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+allowed_origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
