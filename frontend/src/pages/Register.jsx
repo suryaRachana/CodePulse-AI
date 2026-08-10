@@ -16,7 +16,7 @@ function Register() {
     try {
       const response = await API.post("/register", {
         name: name,
-        email: email,
+        email: email.trim().toLowerCase(),
         password: password,
       });
 

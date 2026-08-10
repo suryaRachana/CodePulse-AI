@@ -1,12 +1,22 @@
+from urllib import request
+
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, SessionLocal
 from app import models
-from app.schemas import UserCreate, UserLogin,DashboardResponse,PredictionRequest, PredictionResponse,HistoryResponse
+from app.schemas import UserCreate, UserLogin,DashboardResponse,PredictionRequest, PredictionResponse,HistoryResponse,RepositoryAnalysisRequest,RepositoryPredictionRequest
 from app.auth import create_user, login_user,create_access_token,get_current_user,verify_token
 from fastapi.security import OAuth2PasswordRequestForm
-
+from app.services.github_service import (
+    get_repository_info,
+    get_repository_metrics,
+    count_functions_and_classes,
+    calculate_complexity,
+    calculate_maintainability_index,
+    calculate_duplicate_code,
+    calculate_repository_health
+)
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -53,13 +63,9 @@ def test_database():
 
 
 @app.post("/register")
-def register_user(user: UserCreate):
-
-    db = SessionLocal()
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
     new_user = create_user(db, user)
-
-    db.close()
 
     return {
         "message": "User registered successfully",
@@ -272,6 +278,161 @@ def delete_history(
     return {
         "message": "Analysis deleted successfully"
     }
+
+
+
+
+@app.post("/analyze-repository")
+def analyze_repository(
+    request: RepositoryAnalysisRequest,
+    current_user: str = Depends(get_current_user),
+):
+    try:
+        repository_info = get_repository_info(
+            request.repository_url
+        )
+
+        repository_metrics = get_repository_metrics(
+            request.repository_url,
+            repository_info["default_branch"]
+        )
+        code_structure = count_functions_and_classes(
+            request.repository_url,
+            repository_info["default_branch"]
+        )
+        complexity_data = calculate_complexity(
+            request.repository_url,
+          
+          
+            repository_info["default_branch"]
+        )
+        maintainability_data = calculate_maintainability_index(
+            request.repository_url,
+            repository_info["default_branch"]
+        )
+        duplicate_code_data = calculate_duplicate_code(
+            request.repository_url,
+            repository_info["default_branch"]
+        )
+        health_data = calculate_repository_health(
+            repository_metrics["lines_of_code"],
+            complexity_data["cyclomatic_complexity"],
+            maintainability_data["maintainability_index"],
+            duplicate_code_data["duplicate_code_percentage"]
+        )
+        return {
+            "message": "Repository analyzed successfully",
+            "repository_url": request.repository_url,
+            "user": current_user,
+            "repository": repository_info,
+            "metrics": repository_metrics,
+            "code_structure": code_structure,
+            "complexity": complexity_data,
+            "maintainability": maintainability_data,
+            "duplicate_code": duplicate_code_data,
+            "prediction": health_data
+        }
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to analyze repository"
+        )
+
+
+
+@app.post("/predict-repository")
+def predict_repository(
+    request: RepositoryPredictionRequest,
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    try:
+        repository_info = get_repository_info(
+            request.repository_url
+        )
+
+        repository_metrics = get_repository_metrics(
+            request.repository_url,
+            repository_info["default_branch"]
+        )
+
+        code_structure = count_functions_and_classes(
+            request.repository_url,
+            repository_info["default_branch"]
+        )
+
+        complexity_data = calculate_complexity(
+            request.repository_url,
+            repository_info["default_branch"]
+        )
+
+        maintainability_data = calculate_maintainability_index(
+            request.repository_url,
+            repository_info["default_branch"]
+        )
+
+        duplicate_code_data = calculate_duplicate_code(
+            request.repository_url,
+            repository_info["default_branch"]
+        )
+
+        health_data = calculate_repository_health(
+            repository_metrics["lines_of_code"],
+            complexity_data["cyclomatic_complexity"],
+            maintainability_data["maintainability_index"],
+            duplicate_code_data["duplicate_code_percentage"]
+        )
+
+        db_user = db.query(models.User).filter(
+            models.User.email == current_user
+        ).first()
+
+        if not db_user:
+            raise HTTPException(
+                status_code=404,
+                detail="User not found"
+            )
+
+        analysis = models.ProjectAnalysis(
+            project_name=repository_info["name"],
+            health_score=health_data["health_score"],
+            technical_debt_score=health_data["technical_debt_score"],
+            risk_level=health_data["risk_level"],
+            recommendation=health_data["recommendation"],
+            user_id=db_user.id
+        )
+
+        db.add(analysis)
+        db.commit()
+        db.refresh(analysis)
+
+        return {
+            "repository": repository_info,
+            "metrics": repository_metrics,
+            "code_structure": code_structure,
+            "complexity": complexity_data,
+            "maintainability": maintainability_data,
+            "duplicate_code": duplicate_code_data,
+            "prediction": health_data
+        }
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to predict repository"
+        )
+
+
+
 
 @app.post("/predict", response_model=PredictionResponse)
 def predict(

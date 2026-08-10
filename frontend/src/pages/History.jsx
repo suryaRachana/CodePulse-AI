@@ -207,27 +207,16 @@ function History() {
           </p>
         ) : history.length === 0 ? (
           <div className="bg-[#161622] border border-purple-500/20 rounded-2xl p-12 text-center">
-
-  <div className="text-7xl mb-4">
-    📂
-  </div>
-
-  <h2 className="text-3xl font-bold text-white">
-    No Analysis History
-  </h2>
-
-  <p className="text-gray-400 mt-3">
-    Analyze your first project to see your reports here.
-  </p>
-
-  <button
-    onClick={() => navigate("/dashboard")}
-    className="mt-6 bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl transition"
-  >
-    Analyze Project
-  </button>
-
-</div>
+            <div className="text-7xl mb-4">📂</div>
+            <h2 className="text-3xl font-bold text-white">No Analysis History</h2>
+            <p className="text-gray-400 mt-3">Analyze your first project to see your reports here.</p>
+            <button
+              onClick={() => navigate("/repositories")}
+              className="mt-6 bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl transition"
+            >
+              Analyze Repository
+            </button>
+          </div>
         ) : (
           <table className="w-full bg-[#161622] rounded-2xl overflow-hidden">
 

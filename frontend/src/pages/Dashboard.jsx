@@ -373,14 +373,16 @@ const COLORS = ["#8b5cf6", "#ef4444"];
       <ResponsiveContainer width="100%" height="100%">
 
         <LineChart
-          data={[
-            { month: "Jan", score: 62 },
-            { month: "Feb", score: 68 },
-            { month: "Mar", score: 74 },
-            { month: "Apr", score: 79 },
-            { month: "May", score: 84 },
-            { month: "Jun", score: dashboardData?.health_score || 88 },
-          ]}
+          data={
+            historyData && historyData.length > 0
+              ? historyData.map((item) => ({
+                  month: item.project,
+                  score: item.health_score,
+                }))
+              : [
+                  { month: "No Data", score: dashboardData?.health_score || 0 },
+                ]
+          }
         >
 
           <CartesianGrid strokeDasharray="3 3" stroke="#333" />

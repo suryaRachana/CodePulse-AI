@@ -31,7 +31,8 @@ class PredictionResponse(BaseModel):
     recommendation: str 
     
 
-
+class RepositoryAnalysisRequest(BaseModel):
+    repository_url: str
 
 class HistoryResponse(BaseModel):
     id: int
@@ -43,3 +44,11 @@ class HistoryResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class RepositoryPredictionRequest(BaseModel):
+    repository_url: str
+
+
+
+    

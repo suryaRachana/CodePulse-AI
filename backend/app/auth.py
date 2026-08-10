@@ -26,11 +26,23 @@ def verify_password(plain_password: str, hashed_password: str):
 
 def create_user(db: Session, user: schemas.UserCreate):
 
+    normalized_email = user.email.strip().lower()
+
+    existing_user = db.query(models.User).filter(
+        models.User.email == normalized_email
+    ).first()
+
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered"
+        )
+
     hashed_password = hash_password(user.password)
 
     db_user = models.User(
         name=user.name,
-        email=user.email,
+        email=normalized_email,
         hashed_password=hashed_password
     )
 
@@ -41,11 +53,13 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
+
 def login_user(db: Session, user: schemas.UserLogin):
     
+    normalized_email = user.email.strip().lower()
 
     db_user = db.query(models.User).filter(
-        models.User.email == user.email
+        models.User.email == normalized_email
     ).first()
 
     if not db_user:

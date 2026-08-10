@@ -11,8 +11,9 @@ function SignIn() {
   const handleLogin = async () => {
     try {
       const formData = new URLSearchParams();
+      const normalizedEmail = email.trim().toLowerCase();
 
-      formData.append("username", email);
+      formData.append("username", normalizedEmail);
       formData.append("password", password);
 
       const response = await API.post("/login", formData, {
