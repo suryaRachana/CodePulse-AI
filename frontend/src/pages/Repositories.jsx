@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import API from "../services/api";
 
 function Repositories() {
   const navigate = useNavigate();
@@ -27,45 +28,26 @@ function Repositories() {
     setShowPrediction(false);
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/predict-repository",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            repository_url: repositoryUrl.trim(),
-          }),
-        }
-      );
+      const response = await API.post("/predict-repository", {
+        repository_url: repositoryUrl.trim(),
+      });
 
-      let data;
-      try {
-        data = await response.json();
-      } catch {
-        throw new Error("Invalid response received from server.");
-      }
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error("Session expired or invalid credentials. Please sign in again.");
-        } else if (response.status === 404) {
-          throw new Error(data.detail || "Repository or resource not found.");
-        } else if (response.status === 500) {
-          throw new Error(data.detail || "Server error occurred while analyzing repository.");
-        }
-        throw new Error(data.detail || "Repository analysis failed.");
-      }
-
-      setRepositoryData(data);
+      setRepositoryData(response.data);
       setShowPrediction(true);
     } catch (err) {
-      if (err.name === "TypeError" && err.message === "Failed to fetch") {
+      console.error(err);
+      if (err.response?.status === 401) {
+        setError("Session expired or invalid credentials. Please sign in again.");
+      } else if (err.response?.status === 404) {
+        setError(err.response.data?.detail || "Repository or resource not found.");
+      } else if (err.response?.status === 500) {
+        setError(err.response.data?.detail || "Server error occurred while analyzing repository.");
+      } else if (err.response?.data?.detail) {
+        setError(err.response.data.detail);
+      } else if (err.request) {
         setError("Network failure: Unable to reach the backend server.");
       } else {
-        setError(err.message);
+        setError(err.message || "Repository analysis failed.");
       }
     } finally {
       setLoading(false);
