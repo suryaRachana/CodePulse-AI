@@ -43,26 +43,45 @@ function Register() {
 
     try {
       setLoading(true);
-      const response = await API.post("/register", {
+      const normalizedEmail = email.trim().toLowerCase();
+
+      // 1. Register User
+      await API.post("/register", {
         name: name.trim(),
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password: password,
       });
 
-      // Redirect to Sign In with success state
-      navigate("/signin", {
-        state: {
-          registeredMessage: response.data?.message || "Registration successful! Please sign in.",
+      // 2. Auto-login using OAuth2 password form payload
+      const formData = new URLSearchParams();
+      formData.append("username", normalizedEmail);
+      formData.append("password", password);
+
+      const loginResponse = await API.post("/login", formData, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
         },
       });
+
+      // 3. Store token and redirect directly to /dashboard
+      if (loginResponse.data?.access_token) {
+        localStorage.setItem("token", loginResponse.data.access_token);
+        navigate("/dashboard");
+      } else {
+        navigate("/signin", {
+          state: {
+            registeredMessage: "Account created successfully! Please sign in with your password.",
+          },
+        });
+      }
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("Registration/Login error:", error);
       if (error.response?.data?.detail) {
         setErrorMessage(error.response.data.detail);
       } else if (error.request) {
         setErrorMessage("Network error. Unable to connect to backend server.");
       } else {
-        setErrorMessage("Registration failed. Please try again.");
+        setErrorMessage("Registration or auto-login failed. Please try signing in manually.");
       }
     } finally {
       setLoading(false);
@@ -153,7 +172,7 @@ function Register() {
             disabled={loading}
             className="w-full mt-2 bg-purple-500 text-white py-3 rounded-xl hover:bg-purple-600 font-semibold transition disabled:opacity-50"
           >
-            {loading ? "Creating Account..." : "Create Account"}
+            {loading ? "Creating Account & Logging In..." : "Create Account"}
           </button>
         </form>
 
