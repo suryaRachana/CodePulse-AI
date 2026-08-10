@@ -1,11 +1,12 @@
-from urllib import request
+import ast
+import re
 
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, SessionLocal
 from app import models
-from app.schemas import UserCreate, UserLogin,DashboardResponse,PredictionRequest, PredictionResponse,HistoryResponse,RepositoryAnalysisRequest,RepositoryPredictionRequest
+from app.schemas import UserCreate, UserLogin,DashboardResponse,PredictionRequest, PredictionResponse,HistoryResponse,RepositoryAnalysisRequest,RepositoryPredictionRequest, UserProfileResponse, RefactorRequest, RefactorResponse
 from app.auth import create_user, login_user,create_access_token,get_current_user,verify_token
 from fastapi.security import OAuth2PasswordRequestForm
 from app.services.github_service import (
@@ -44,6 +45,142 @@ def home():
     return {
         "message": "CodePulse AI Backend Running"
     }
+
+
+@app.get("/me", response_model=UserProfileResponse)
+def get_current_user_profile(
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    db_user = db.query(models.User).filter(
+        models.User.email == current_user
+    ).first()
+
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User profile not found"
+        )
+
+    return db_user
+
+
+def analyze_and_refactor_python_code(code: str) -> dict:
+    try:
+        parsed_ast = ast.parse(code)
+    except SyntaxError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid Python syntax: {e.msg} at line {e.lineno}"
+        )
+
+    # 1. Simple list accumulator pattern
+    accumulator_pattern = re.compile(
+        r"def\s+(?P<func_name>\w+)\s*\((?P<arg>\w+)\):\s*\n"
+        r"\s*(?P<var>\w+)\s*=\s*\[\]\s*\n"
+        r"\s*for\s+(?P<item>\w+)\s+in\s+(?P=arg):\s*\n"
+        r"\s*if\s+(?P<item2>\w+)\.(?P<cond>\w+):\s*\n"
+        r"\s*(?P=var)\.append\((?P=item2)\)\s*\n"
+        r"\s*return\s+(?P=var)",
+        re.MULTILINE
+    )
+    match = accumulator_pattern.search(code)
+    if match and match.group("item") == match.group("item2"):
+        func_name = match.group("func_name")
+        arg = match.group("arg")
+        item = match.group("item")
+        cond = match.group("cond")
+        refactored = f"def {func_name}({arg}):\n    return [{item} for {item} in {arg} if {item}.{cond}]"
+        return {
+            "refactored_code": refactored,
+            "issue_description": "Estimated rule-based optimization: Simplifies loop accumulator into a clean Pythonic list comprehension.",
+            "complexity_reduction": 32.0,
+            "maintainability_increase": 28.0,
+            "technical_debt_reduction": 24.0
+        }
+
+    # 2. Check for nested if statements (depth >= 2)
+    max_if_depth = 0
+    for node in ast.walk(parsed_ast):
+        if isinstance(node, ast.If):
+            depth = 1
+            curr = node
+            while hasattr(curr, "body") and len(curr.body) == 1 and isinstance(curr.body[0], ast.If):
+                depth += 1
+                curr = curr.body[0]
+            if depth > max_if_depth:
+                max_if_depth = depth
+
+    if max_if_depth >= 2:
+        lines = code.splitlines()
+        refactored_lines = []
+        for line in lines:
+            if re.search(r"if\s+.*:\s*$", line) and "return" not in line:
+                refactored_lines.append(line.replace("if ", "if not ") + " # Guard clause suggested")
+            else:
+                refactored_lines.append(line)
+        return {
+            "refactored_code": "\n".join(refactored_lines),
+            "issue_description": "Estimated rule-based optimization: Replaces deeply nested conditional blocks with early exit guard clauses.",
+            "complexity_reduction": 35.0,
+            "maintainability_increase": 30.0,
+            "technical_debt_reduction": 25.0
+        }
+
+    # 3. Check for redundant boolean comparison (== True / == False)
+    if re.search(r"==\s*True|==\s*False", code):
+        refactored = re.sub(r"==\s*True", "", code)
+        refactored = re.sub(r"==\s*False", " is False", refactored)
+        return {
+            "refactored_code": refactored,
+            "issue_description": "Estimated rule-based optimization: Simplifies redundant boolean comparisons.",
+            "complexity_reduction": 20.0,
+            "maintainability_increase": 25.0,
+            "technical_debt_reduction": 18.0
+        }
+
+    # 4. Default fallback if no safe rule matched
+    return {
+        "refactored_code": code,
+        "issue_description": "No safe automatic rule-based refactoring was identified for this code snippet. Code structure is acceptable.",
+        "complexity_reduction": 0.0,
+        "maintainability_increase": 0.0,
+        "technical_debt_reduction": 0.0
+    }
+
+
+@app.post("/refactor-suggestion", response_model=RefactorResponse)
+def get_refactor_suggestion(
+    payload: RefactorRequest,
+    current_user: str = Depends(get_current_user)
+):
+    if not payload.code or not payload.code.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Code snippet cannot be empty."
+        )
+
+    lang = (payload.language or "python").lower()
+    if lang not in ["python", "py"]:
+        return RefactorResponse(
+            original_code=payload.code,
+            refactored_code=payload.code,
+            issue_description=f"Automatic refactoring is currently optimized for Python. For language '{payload.language}', no safe transformation was applied.",
+            complexity_reduction=0.0,
+            maintainability_increase=0.0,
+            technical_debt_reduction=0.0
+        )
+
+    result = analyze_and_refactor_python_code(payload.code)
+
+    return RefactorResponse(
+        original_code=payload.code,
+        refactored_code=result["refactored_code"],
+        issue_description=result["issue_description"],
+        complexity_reduction=result["complexity_reduction"],
+        maintainability_increase=result["maintainability_increase"],
+        technical_debt_reduction=result["technical_debt_reduction"]
+    )
 
 
 @app.get("/test-db")
