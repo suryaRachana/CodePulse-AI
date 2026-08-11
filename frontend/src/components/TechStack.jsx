@@ -50,134 +50,45 @@ function TechStack() {
     },
   ];
 
-
   return (
-    <section
-      id="tech-stack"
-      className="bg-[#0B0B12] px-12 py-20"
-    >
-
-
-      <div className="text-center">
-
-
-        <p className="
-          text-purple-400
-          font-medium
-          text-lg
-        ">
+    <section id="tech-stack" className="bg-[#0B0B12] px-4 sm:px-8 lg:px-12 py-12 lg:py-20">
+      <div className="text-center max-w-3xl mx-auto">
+        <p className="text-purple-400 font-medium text-sm sm:text-base">
           Technology Stack
         </p>
 
-
-
-        <h2 className="
-          text-5xl
-          font-bold
-          text-white
-          mt-4
-        ">
-          Built on Modern,
-          <br />
-          Scalable Architecture
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mt-3 sm:mt-4 leading-tight">
+          Built on Modern, Scalable Architecture
         </h2>
 
-
-
-        <p className="
-          text-gray-400
-          mt-5
-          max-w-2xl
-          mx-auto
-          text-lg
-        ">
-          A future-ready architecture designed to connect
-          with your existing ML and backend services.
+        <p className="text-gray-400 mt-3 sm:mt-5 text-sm sm:text-base lg:text-lg leading-relaxed">
+          A future-ready architecture designed to connect with your existing ML
+          and backend services.
         </p>
-
-
       </div>
 
-
-
-
-      <div className="
-        grid
-        grid-cols-1
-        md:grid-cols-4
-        gap-6
-        mt-14
-      ">
-
-
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-10 lg:mt-14">
         {technologies.map((tech) => (
-
           <div
             key={tech.title}
-            className="
-              bg-[#161622]
-              border border-purple-500/20
-              rounded-2xl
-              p-6
-              hover:border-purple-500
-              hover:-translate-y-2
-              hover:shadow-xl
-              hover:shadow-purple-500/10
-              transition-all
-              duration-300
-            "
+            className="bg-[#161622] border border-purple-500/20 rounded-2xl p-5 sm:p-6 hover:border-purple-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 flex flex-col justify-between"
           >
+            <div>
+              <span className="inline-block text-purple-400 text-xs sm:text-sm bg-purple-500/10 border border-purple-500/20 px-3 py-1 rounded-full font-medium">
+                {tech.category}
+              </span>
 
+              <h3 className="text-white text-lg sm:text-xl font-semibold mt-4 sm:mt-5">
+                {tech.title}
+              </h3>
 
-
-            <span className="
-              inline-block
-              text-purple-400
-              text-sm
-              bg-purple-500/10
-              border
-              border-purple-500/20
-              px-3
-              py-1
-              rounded-full
-            ">
-              {tech.category}
-            </span>
-
-
-
-
-            <h3 className="
-              text-white
-              text-xl
-              font-semibold
-              mt-5
-            ">
-              {tech.title}
-            </h3>
-
-
-
-
-            <p className="
-              text-gray-400
-              text-sm
-              mt-4
-              leading-relaxed
-            ">
-              {tech.description}
-            </p>
-
-
-
+              <p className="text-gray-400 text-xs sm:text-sm mt-3 sm:mt-4 leading-relaxed">
+                {tech.description}
+              </p>
+            </div>
           </div>
-
         ))}
-
-
       </div>
-
-
     </section>
   );
 }

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../services/api";
 import toast from "react-hot-toast";
 import { FaFolderOpen } from "react-icons/fa";
-
+import Sidebar from "../components/Sidebar";
 
 import {
   ResponsiveContainer,
@@ -14,6 +14,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+
 function History() {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +38,7 @@ function History() {
       setHistory(response.data);
     } catch (error) {
       console.error(error);
-     toast.error("Failed to load history!");
+      toast.error("Failed to load history!");
     } finally {
       setLoading(false);
     }
@@ -58,44 +59,38 @@ function History() {
     }
   };
 
-
   const chartData = history.map((item) => ({
-  project: item.project_name,
-  health: item.health_score,
-}));
+    project: item.project_name,
+    health: item.health_score,
+  }));
 
   return (
-    <section className="min-h-screen bg-[#0B0B12] px-12 py-10">
+    <div className="flex flex-col lg:flex-row bg-[#0B0B12] min-h-screen overflow-x-hidden">
+      <Sidebar />
 
-      {/* Header */}
-      <div className="flex justify-between items-center">
+      <section className="flex-1 w-full min-h-screen bg-[#0B0B12] px-4 sm:px-6 lg:px-10 py-6 lg:py-8 overflow-x-hidden">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+              Analysis <span className="text-purple-400">History</span>
+            </h1>
 
-        <div>
-          <h1 className="text-4xl font-bold text-white">
-            Analysis{" "}
-            <span className="text-purple-400">
-              History
-            </span>
-          </h1>
-         
+            <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-3">
+              View and manage your previous project analyses.
+            </p>
+          </div>
 
-          <p className="text-gray-400 mt-3">
-            View and manage your previous project analyses.
-          </p>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white px-5 py-2.5 rounded-lg transition text-xs sm:text-sm font-medium min-h-[44px] flex items-center justify-center"
+          >
+            Back to Dashboard
+          </button>
         </div>
 
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="bg-purple-500 hover:bg-purple-600 text-white px-5 py-2 rounded-lg transition"
-        >
-          Back to Dashboard
-        </button>
-
-      </div>
-
-{/* Statistics */}
-
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+        {/* Statistics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-6 sm:mt-10">
 
   <div className="bg-[#161622] border border-gray-700 rounded-2xl p-6">
     <p className="text-gray-400 text-sm">
@@ -218,83 +213,74 @@ function History() {
             </button>
           </div>
         ) : (
-          <table className="w-full bg-[#161622] rounded-2xl overflow-hidden">
+          <div className="overflow-x-auto w-full border border-gray-800 rounded-2xl">
+            <table className="w-full bg-[#161622] rounded-2xl overflow-hidden min-w-[600px]">
+              <thead className="bg-purple-600">
+                <tr>
+                  <th className="p-4 text-left text-white">Repository</th>
+                  <th className="p-4 text-left text-white">Health Score</th>
+                  <th className="p-4 text-left text-white">Technical Debt</th>
+                  <th className="p-4 text-left text-white">Risk Level</th>
+                  <th className="p-4 text-left text-white">Actions</th>
+                </tr>
+              </thead>
 
-  <thead className="bg-purple-600">
-    <tr>
-      <th className="p-4 text-left text-white">Repository</th>
-<th className="p-4 text-left text-white">Health Score</th>
-<th className="p-4 text-left text-white">Technical Debt</th>
-<th className="p-4 text-left text-white">Risk Level</th>
-<th className="p-4 text-left text-white">Actions</th>
-    </tr>
-  </thead>
+              <tbody>
+                {history.map((item) => (
+                  <tr
+                    key={item.id}
+                    className="border-b border-gray-700 hover:bg-[#1d1d2b] transition"
+                  >
+                    <td className="p-4 text-gray-300 font-medium break-all">
+                      {item.project_name}
+                    </td>
 
-  <tbody>
+                    <td className="p-4 text-green-400 font-semibold">
+                      {item.health_score}%
+                    </td>
 
-    {history.map((item) => (
+                    <td className="p-4 text-red-400">
+                      {item.technical_debt_score}%
+                    </td>
 
-      <tr
-        key={item.id}
-        className="border-b border-gray-700 hover:bg-[#1d1d2b] transition"
-      >
+                    <td className="p-4">
+                      <span
+                        className={`px-3 py-1 rounded-full text-white text-xs font-semibold ${
+                          item.risk_level === "Low"
+                            ? "bg-green-500"
+                            : item.risk_level === "Medium"
+                            ? "bg-yellow-500"
+                            : "bg-red-500"
+                        }`}
+                      >
+                        {item.risk_level}
+                      </span>
+                    </td>
 
-        <td className="p-4 text-gray-300">
-          {item.project_name}
-        </td>
+                    <td className="p-4 flex gap-2">
+                      <button
+                        onClick={() => navigate(`/history/${item.id}`)}
+                        className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded-lg transition text-xs font-medium min-h-[36px]"
+                      >
+                        View Details
+                      </button>
 
-        <td className="p-4 text-green-400 font-semibold">
-          {item.health_score}%
-        </td>
-
-        <td className="p-4 text-red-400">
-          {item.technical_debt_score}
-        </td>
-
-        <td className="p-4">
-  <span
-    className={`px-3 py-1 rounded-full text-white text-sm font-semibold ${
-      item.risk_level === "Low"
-        ? "bg-green-500"
-        : item.risk_level === "Medium"
-        ? "bg-yellow-500"
-        : "bg-red-500"
-    }`}
-  >
-    {item.risk_level}
-  </span>
-</td>
-
-        <td className="p-4 flex gap-3">
-
-          <button
-            onClick={() => navigate(`/history/${item.id}`)}
-            className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition"
-          >
-            View Details
-          </button>
-
-          <button
-            onClick={() => handleDelete(item.id)}
-            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition"
-          >
-            Delete
-          </button>
-
-        </td>
-
-      </tr>
-
-    ))}
-
-  </tbody>
-
-</table>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition text-xs font-medium min-h-[36px]"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-
       </div>
-
     </section>
+    </div>
   );
 }
 

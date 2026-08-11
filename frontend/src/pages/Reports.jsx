@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import API from "../services/api";
 
+import Sidebar from "../components/Sidebar";
+
 function Reports() {
   const navigate = useNavigate();
   const [latestAnalysis, setLatestAnalysis] = useState(null);
@@ -150,44 +152,47 @@ function Reports() {
   };
 
   return (
-    <section className="min-h-screen bg-[#0B0B12] px-10 py-8">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-4xl font-bold text-white">
-            Analysis <span className="text-purple-400">Reports</span>
-          </h1>
-          <p className="text-gray-400 mt-2">
-            Download and view repository analysis reports.
-          </p>
+    <div className="flex flex-col lg:flex-row bg-[#0B0B12] min-h-screen overflow-x-hidden">
+      <Sidebar />
+
+      <section className="flex-1 w-full min-h-screen bg-[#0B0B12] px-4 sm:px-6 lg:px-10 py-6 lg:py-8 overflow-x-hidden">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+              Analysis <span className="text-purple-400">Reports</span>
+            </h1>
+            <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2">
+              Download and view repository analysis reports.
+            </p>
+          </div>
+
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white px-5 py-2.5 rounded-lg transition text-xs sm:text-sm font-medium min-h-[44px] flex items-center justify-center"
+          >
+            Back to Dashboard
+          </button>
         </div>
 
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="bg-purple-500 hover:bg-purple-600 text-white px-5 py-2 rounded-lg transition"
-        >
-          Back to Dashboard
-        </button>
-      </div>
+        {/* Download Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-6 sm:mt-10">
+          <button
+            onClick={handleDownloadPDF}
+            disabled={!latestAnalysis}
+            className="bg-green-500 hover:bg-green-600 text-white p-5 sm:p-6 rounded-2xl text-lg sm:text-xl font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed min-h-[56px] flex items-center justify-center gap-2"
+          >
+            📄 Download PDF Report
+          </button>
 
-      {/* Download Buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
-        <button
-          onClick={handleDownloadPDF}
-          disabled={!latestAnalysis}
-          className="bg-green-500 hover:bg-green-600 text-white p-6 rounded-2xl text-xl font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          📄 Download PDF Report
-        </button>
-
-        <button
-          onClick={handleExportCSV}
-          disabled={!latestAnalysis && historyList.length === 0}
-          className="bg-blue-500 hover:bg-blue-600 text-white p-6 rounded-2xl text-xl font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          📊 Export CSV Data
-        </button>
-      </div>
+          <button
+            onClick={handleExportCSV}
+            disabled={!latestAnalysis && historyList.length === 0}
+            className="bg-blue-500 hover:bg-blue-600 text-white p-5 sm:p-6 rounded-2xl text-lg sm:text-xl font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed min-h-[56px] flex items-center justify-center gap-2"
+          >
+            📊 Export CSV Data
+          </button>
+        </div>
 
       {/* Loading State */}
       {loading ? (
@@ -331,6 +336,7 @@ function Reports() {
         </>
       )}
     </section>
+    </div>
   );
 }
 

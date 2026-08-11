@@ -142,216 +142,182 @@ const chartData = dashboardData
 
 const COLORS = ["#8b5cf6", "#ef4444"];
   return (
-     <div className="flex bg-[#0B0B12]">
+    <div className="flex flex-col lg:flex-row bg-[#0B0B12] min-h-screen overflow-x-hidden">
+      <Sidebar />
 
-    <Sidebar />
+      <section className="flex-1 w-full min-h-screen bg-[#0B0B12] px-4 sm:px-6 lg:px-10 py-6 lg:py-8 overflow-x-hidden">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+              Repository Health Dashboard
+            </h1>
 
-<section className="min-h-screen bg-[#0B0B12] px-10 py-8">
+            <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2">
+              Live insights from your latest repository analysis.
+            </p>
+          </div>
 
-  {/* Header */}
-  <div className="flex justify-between items-center mb-8">
+          <div className="flex flex-wrap sm:flex-nowrap gap-2.5 sm:gap-4 w-full sm:w-auto">
+            <button
+              onClick={() => navigate("/reports")}
+              className="flex-1 sm:flex-none bg-gray-700 hover:bg-gray-600 text-white px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium min-h-[44px]"
+            >
+              View Reports
+            </button>
 
-    <div>
-      <h1 className="text-4xl font-bold text-white">
-        Repository Health Dashboard
-      </h1>
+            <button
+              onClick={() => navigate("/repositories")}
+              className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium min-h-[44px]"
+            >
+              New Analysis
+            </button>
 
-      <p className="text-gray-400 mt-2">
-        Live insights from your latest repository analysis.
-      </p>
-    </div>
+            <button
+              onClick={handleLogout}
+              className="flex-1 sm:flex-none bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium min-h-[44px]"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
 
-    <div className="flex gap-4">
+        {/* Dashboard Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mt-6 sm:mt-10">
+          {/* Health Score */}
+          <div className="bg-[#161622] border border-gray-700 rounded-2xl p-5 sm:p-6">
+            <p className="text-gray-400 text-xs sm:text-sm uppercase tracking-wider font-semibold">
+              Software Health Score
+            </p>
 
-      <button
-        onClick={() => navigate("/reports")}
-        className="bg-gray-700 hover:bg-gray-600 text-white px-5 py-2 rounded-lg"
-      >
-        View Reports
-      </button>
+            <h2 className="text-3xl sm:text-4xl font-bold text-green-400 mt-3 sm:mt-4">
+              {dashboardData ? `${dashboardData.health_score}%` : "--"}
+            </h2>
 
-      <button
-        onClick={() => navigate("/repositories")}
-        className="bg-green-500 hover:bg-green-600 text-white px-5 py-2 rounded-lg"
-      >
-        New Analysis
-      </button>
+            <p className="text-green-400 text-xs sm:text-sm mt-1.5 sm:mt-2">
+              Healthy Repository
+            </p>
 
-      <button
-        onClick={handleLogout}
-        className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg"
-      >
-        Logout
-      </button>
+            <div className="w-full bg-gray-700 rounded-full h-2 mt-4 sm:mt-5">
+              <div
+                className="bg-green-400 h-2 rounded-full transition-all"
+                style={{
+                  width: `${dashboardData?.health_score || 0}%`,
+                }}
+              />
+            </div>
+          </div>
 
-    </div>
+          {/* Technical Debt */}
+          <div className="bg-[#161622] border border-gray-700 rounded-2xl p-5 sm:p-6">
+            <p className="text-gray-400 text-xs sm:text-sm uppercase tracking-wider font-semibold">
+              Technical Debt
+            </p>
 
-  </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-yellow-400 mt-3 sm:mt-4">
+              {dashboardData?.technical_debt_score ?? "--"}%
+            </h2>
 
+            <p className="text-red-400 text-xs sm:text-sm mt-1.5 sm:mt-2">
+              Requires Attention
+            </p>
 
+            <div className="w-full bg-gray-700 rounded-full h-2 mt-4 sm:mt-5">
+              <div
+                className="bg-yellow-400 h-2 rounded-full transition-all"
+                style={{
+                  width: `${dashboardData?.technical_debt_score || 0}%`,
+                }}
+              />
+            </div>
+          </div>
 
-   {/* Dashboard Cards */}
+          {/* Future Risk */}
+          <div className="bg-[#161622] border border-gray-700 rounded-2xl p-5 sm:p-6">
+            <p className="text-gray-400 text-xs sm:text-sm uppercase tracking-wider font-semibold">
+              Future Risk Level
+            </p>
 
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">
+            <h2
+              className={`text-3xl sm:text-4xl font-bold mt-3 sm:mt-4 ${
+                dashboardData?.risk_level === "Low"
+                  ? "text-green-400"
+                  : dashboardData?.risk_level === "Medium"
+                  ? "text-yellow-400"
+                  : dashboardData?.risk_level === "High"
+                  ? "text-orange-400"
+                  : "text-red-500"
+              }`}
+            >
+              {dashboardData?.risk_level || "--"}
+            </h2>
 
-  {/* Health Score */}
-  <div className="bg-[#161622] border border-gray-700 rounded-2xl p-6">
+            <p className="text-gray-400 text-xs sm:text-sm mt-1.5 sm:mt-2">
+              AI Predicted Risk
+            </p>
+          </div>
 
-    <p className="text-gray-400 text-sm uppercase tracking-wider">
-      Software Health Score
-    </p>
+          {/* Files Analyzed */}
+          <div className="bg-[#161622] border border-gray-700 rounded-2xl p-5 sm:p-6">
+            <p className="text-gray-400 text-xs sm:text-sm uppercase tracking-wider font-semibold">
+              Files Analyzed
+            </p>
 
-    <h2 className="text-4xl font-bold text-green-400 mt-4">
-      {dashboardData ? `${dashboardData.health_score}%` : "--"}
-    </h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-blue-400 mt-3 sm:mt-4">
+              {dashboardData?.total_files ?? "--"}
+            </h2>
 
-    <p className="text-green-400 text-sm mt-2">
-      Healthy Repository
-    </p>
+            <p className="text-blue-400 text-xs sm:text-sm mt-1.5 sm:mt-2">
+              Repository Files
+            </p>
+          </div>
+        </div>
 
-    <div className="w-full bg-gray-700 rounded-full h-2 mt-5">
-      <div
-        className="bg-green-400 h-2 rounded-full transition-all"
-        style={{
-          width: `${dashboardData?.health_score || 0}%`,
-        }}
-      />
-    </div>
+        {/* Repository Information */}
+        <div className="mt-6 sm:mt-8 bg-[#161622] border border-gray-700 rounded-2xl p-5 sm:p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-5 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-white">
+              Current Repository
+            </h2>
 
-  </div>
+            <button
+              onClick={() => navigate("/repositories")}
+              className="w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium min-h-[44px] flex items-center justify-center"
+            >
+              Analyze New Repository
+            </button>
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+            <div>
+              <p className="text-gray-400 text-xs sm:text-sm">Repository</p>
+              <h3 className="text-white font-semibold mt-1 sm:mt-2 break-all text-sm sm:text-base">
+                {dashboardData?.project_name || "No Repository"}
+              </h3>
+            </div>
 
+            <div>
+              <p className="text-gray-400 text-xs sm:text-sm">Language</p>
+              <h3 className="text-white font-semibold mt-1 sm:mt-2 text-sm sm:text-base">
+                {dashboardData?.language || "--"}
+              </h3>
+            </div>
 
-  
-  {/* Technical Debt */}
+            <div>
+              <p className="text-gray-400 text-xs sm:text-sm">Files</p>
+              <h3 className="text-white font-semibold mt-1 sm:mt-2 text-sm sm:text-base">
+                {dashboardData?.total_files || "--"}
+              </h3>
+            </div>
 
-  <div className="bg-[#161622] border border-gray-700 rounded-2xl p-6">
-
-    <p className="text-gray-400 text-sm uppercase tracking-wider">
-      Technical Debt
-    </p>
-
-    <h2 className="text-4xl font-bold text-yellow-400 mt-4">
-      {dashboardData?.technical_debt_score ?? "--"}%
-    </h2>
-
-    <p className="text-red-400 text-sm mt-2">
-      Requires Attention
-    </p>
-
-    <div className="w-full bg-gray-700 rounded-full h-2 mt-5">
-      <div
-        className="bg-yellow-400 h-2 rounded-full transition-all"
-        style={{
-          width: `${dashboardData?.technical_debt_score || 0}%`,
-        }}
-      />
-    </div>
-
-  </div>
-
-  {/* Future Risk */}
-
-  <div className="bg-[#161622] border border-gray-700 rounded-2xl p-6">
-
-    <p className="text-gray-400 text-sm uppercase tracking-wider">
-      Future Risk Level
-    </p>
-
-    <h2
-      className={`text-4xl font-bold mt-4 ${
-        dashboardData?.risk_level === "Low"
-          ? "text-green-400"
-          : dashboardData?.risk_level === "Medium"
-          ? "text-yellow-400"
-          : dashboardData?.risk_level === "High"
-          ? "text-orange-400"
-          : "text-red-500"
-      }`}
-    >
-      {dashboardData?.risk_level || "--"}
-    </h2>
-
-    <p className="text-gray-400 text-sm mt-2">
-      AI Predicted Risk
-    </p>
-
-  </div>
-
-  {/* Files Analyzed */}
-
-  <div className="bg-[#161622] border border-gray-700 rounded-2xl p-6">
-
-    <p className="text-gray-400 text-sm uppercase tracking-wider">
-      Files Analyzed
-    </p>
-
-    <h2 className="text-4xl font-bold text-blue-400 mt-4">
-      {dashboardData?.total_files ?? "--"}
-    </h2>
-
-    <p className="text-blue-400 text-sm mt-2">
-      Repository Files
-    </p>
-
-  </div>
-
-</div>  
-
-
-
-{/* Repository Information */}
-
-<div className="mt-8 bg-[#161622] border border-gray-700 rounded-2xl p-6">
-
-  <div className="flex justify-between items-center mb-6">
-
-    <h2 className="text-2xl font-bold text-white">
-      Current Repository
-    </h2>
-
-    <button
-      onClick={() => navigate("/repositories")}
-      className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg"
-    >
-      Analyze New Repository
-    </button>
-
-  </div>
-
-  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-
-    <div>
-      <p className="text-gray-400 text-sm">Repository</p>
-      <h3 className="text-white font-semibold mt-2">
-        {dashboardData?.project_name || "No Repository"}
-      </h3>
-    </div>
-
-    <div>
-      <p className="text-gray-400 text-sm">Language</p>
-      <h3 className="text-white font-semibold mt-2">
-        {dashboardData?.language || "--"}
-      </h3>
-    </div>
-
-    <div>
-      <p className="text-gray-400 text-sm">Files</p>
-      <h3 className="text-white font-semibold mt-2">
-        {dashboardData?.total_files || "--"}
-      </h3>
-    </div>
-
-    <div>
-      <p className="text-gray-400 text-sm">Lines of Code</p>
-      <h3 className="text-white font-semibold mt-2">
-        {dashboardData?.lines_of_code || "--"}
-      </h3>
-    </div>
-
-  </div>
-
-</div>
+            <div>
+              <p className="text-gray-400 text-xs sm:text-sm">Lines of Code</p>
+              <h3 className="text-white font-semibold mt-1 sm:mt-2 text-sm sm:text-base">
+                {dashboardData?.lines_of_code || "--"}
+              </h3>
+            </div>
+          </div>
+        </div>
 {/* Health Trend + Risk Distribution */}
 
 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-10">

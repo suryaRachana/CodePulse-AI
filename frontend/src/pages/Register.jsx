@@ -89,23 +89,23 @@ function Register() {
   };
 
   return (
-    <section className="min-h-screen bg-[#0B0B12] flex items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md bg-[#161622] border border-purple-500/20 rounded-2xl p-8 shadow-xl shadow-purple-500/10">
-        <h1 className="text-3xl font-bold text-white text-center">
+    <section className="min-h-screen bg-[#0B0B12] flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
+      <div className="w-full max-w-md bg-[#161622] border border-purple-500/20 rounded-2xl p-6 sm:p-8 shadow-xl shadow-purple-500/10">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white text-center">
           CodePulse <span className="text-purple-400">AI</span>
         </h1>
 
-        <h2 className="text-white text-2xl font-semibold text-center mt-6">
+        <h2 className="text-white text-xl sm:text-2xl font-semibold text-center mt-4 sm:mt-6">
           Create Account
         </h2>
 
-        <p className="text-gray-400 text-center mt-2 text-sm">
+        <p className="text-gray-400 text-center mt-2 text-xs sm:text-sm">
           Start analyzing your repository health with AI
         </p>
 
         {/* Error Banner */}
         {errorMessage && (
-          <div className="mt-6 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl p-4 text-center">
+          <div className="mt-4 sm:mt-6 bg-red-500/10 border border-red-500/30 text-red-400 text-xs sm:text-sm rounded-xl p-3.5 sm:p-4 text-center">
             {errorMessage}
           </div>
         )}
@@ -120,7 +120,7 @@ function Register() {
               placeholder="Surya Rachana"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-[#0B0B12] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500 transition"
+              className="w-full bg-[#0B0B12] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500 transition text-sm min-h-[44px]"
               required
             />
           </div>
@@ -134,7 +134,7 @@ function Register() {
               placeholder="user@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-[#0B0B12] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500 transition"
+              className="w-full bg-[#0B0B12] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500 transition text-sm min-h-[44px]"
               required
             />
           </div>
@@ -148,7 +148,7 @@ function Register() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#0B0B12] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500 transition"
+              className="w-full bg-[#0B0B12] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500 transition text-sm min-h-[44px]"
               required
             />
           </div>
@@ -162,7 +162,7 @@ function Register() {
               placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full bg-[#0B0B12] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500 transition"
+              className="w-full bg-[#0B0B12] border border-gray-700 rounded-xl px-4 py-3 text-white outline-none focus:border-purple-500 transition text-sm min-h-[44px]"
               required
             />
           </div>
@@ -170,15 +170,15 @@ function Register() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 bg-purple-500 text-white py-3 rounded-xl hover:bg-purple-600 font-semibold transition disabled:opacity-50"
+            className="w-full mt-2 bg-purple-500 text-white py-3 rounded-xl hover:bg-purple-600 font-semibold transition disabled:opacity-50 min-h-[44px] flex items-center justify-center text-sm sm:text-base"
           >
-            {loading ? "Creating Account & Logging In..." : "Create Account"}
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-400">
+        <div className="mt-6 text-center text-xs sm:text-sm text-gray-400">
           Already have an account?{" "}
-          <Link to="/signin" className="text-purple-400 hover:underline font-medium">
+          <Link to="/signin" className="text-purple-400 hover:underline font-medium p-1 inline-block">
             Sign In
           </Link>
         </div>

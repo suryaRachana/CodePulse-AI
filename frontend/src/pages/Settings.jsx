@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../services/api";
+import Sidebar from "../components/Sidebar";
 
 function Settings() {
   const navigate = useNavigate();
@@ -36,23 +37,26 @@ function Settings() {
   }, [navigate]);
 
   return (
-    <section className="min-h-screen bg-[#0B0B12] px-10 py-8">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-4xl font-bold text-white">Settings</h1>
-          <p className="text-gray-400 mt-2">
-            Manage your account and application preferences.
-          </p>
-        </div>
+    <div className="flex flex-col lg:flex-row bg-[#0B0B12] min-h-screen overflow-x-hidden">
+      <Sidebar />
 
-        <button
-          onClick={() => navigate("/dashboard")}
-          className="bg-purple-500 hover:bg-purple-600 text-white px-5 py-2 rounded-lg transition"
-        >
-          Back to Dashboard
-        </button>
-      </div>
+      <section className="flex-1 w-full min-h-screen bg-[#0B0B12] px-4 sm:px-6 lg:px-10 py-6 lg:py-8 overflow-x-hidden">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">Settings</h1>
+            <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2">
+              Manage your account and application preferences.
+            </p>
+          </div>
+
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white px-5 py-2.5 rounded-lg transition text-xs sm:text-sm font-medium min-h-[44px] flex items-center justify-center"
+          >
+            Back to Dashboard
+          </button>
+        </div>
 
       {/* Loading State */}
       {loading ? (
@@ -185,13 +189,14 @@ function Settings() {
                 Receive alerts for suspicious account activity.
               </p>
             </div>
-            <button className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg transition">
+            <button className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-lg transition min-h-[44px]">
               Disabled
             </button>
           </div>
         </div>
       </div>
     </section>
+    </div>
   );
 }
 

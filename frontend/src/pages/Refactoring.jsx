@@ -8,6 +8,7 @@ import {
   FaBrain,
 } from "react-icons/fa";
 import API from "../services/api";
+import Sidebar from "../components/Sidebar";
 
 const DEFAULT_SAMPLE_CODE = `def process_data(data):
     result = []
@@ -107,25 +108,28 @@ function Refactoring() {
   };
 
   return (
-    <section className="min-h-screen bg-[#0B0B12] px-10 py-8">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-10">
-        <div>
-          <h1 className="text-4xl font-bold text-white">
-            Code <span className="text-purple-400">Refactoring</span>
-          </h1>
-          <p className="text-gray-400 mt-2">
-            Rule-based code refactoring and technical debt optimization.
-          </p>
-        </div>
+    <div className="flex flex-col lg:flex-row bg-[#0B0B12] min-h-screen overflow-x-hidden">
+      <Sidebar />
 
-        <button
-          onClick={() => navigate("/prediction")}
-          className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition"
-        >
-          View Risk Prediction
-        </button>
-      </div>
+      <section className="flex-1 w-full min-h-screen bg-[#0B0B12] px-4 sm:px-6 lg:px-10 py-6 lg:py-8 overflow-x-hidden">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-10">
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+              Code <span className="text-purple-400">Refactoring</span>
+            </h1>
+            <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2">
+              Rule-based code refactoring and technical debt optimization.
+            </p>
+          </div>
+
+          <button
+            onClick={() => navigate("/prediction")}
+            className="w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold transition text-sm sm:text-base min-h-[44px] flex items-center justify-center"
+          >
+            View Risk Prediction
+          </button>
+        </div>
 
       {/* Loading State */}
       {loading ? (
@@ -336,6 +340,7 @@ function Refactoring() {
         </>
       )}
     </section>
+    </div>
   );
 }
 

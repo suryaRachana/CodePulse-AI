@@ -55,23 +55,23 @@ function Repositories() {
   };
 
   return (
-    <div className="flex bg-[#0B0B12] min-h-screen">
+    <div className="flex flex-col lg:flex-row bg-[#0B0B12] min-h-screen overflow-x-hidden">
       <Sidebar />
 
-      <section className="flex-1 px-10 py-8">
+      <section className="flex-1 w-full min-h-screen bg-[#0B0B12] px-4 sm:px-6 lg:px-10 py-6 lg:py-8 overflow-x-hidden">
         {/* Header */}
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold text-white">
+        <div className="mb-6 sm:mb-10">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
             Analyze Repository
           </h1>
-          <p className="text-gray-400 mt-2">
+          <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2">
             Paste your GitHub repository URL to begin AI-powered analysis.
           </p>
         </div>
 
         {/* Repository URL Input Card */}
-        <div className="bg-[#161622] border border-gray-700 rounded-2xl p-8">
-          <h2 className="text-2xl font-semibold text-white mb-6">
+        <div className="bg-[#161622] border border-gray-700 rounded-2xl p-5 sm:p-8">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white mb-4 sm:mb-6">
             Repository URL
           </h2>
 
@@ -80,12 +80,12 @@ function Repositories() {
             placeholder="https://github.com/username/repository"
             value={repositoryUrl}
             onChange={(e) => setRepositoryUrl(e.target.value)}
-            className="w-full bg-[#0B0B12] border border-gray-700 rounded-xl px-5 py-4 text-white outline-none focus:border-purple-500"
+            className="w-full bg-[#0B0B12] border border-gray-700 rounded-xl px-4 sm:px-5 py-3 sm:py-4 text-white text-sm sm:text-base outline-none focus:border-purple-500 min-h-[44px]"
           />
 
           <div className="flex items-center gap-4 mt-6">
             <button
-              className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl transition font-medium text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] flex items-center justify-center"
               onClick={handleAnalyze}
               disabled={loading}
             >
@@ -95,8 +95,8 @@ function Repositories() {
 
           {/* Clean Error State */}
           {error && (
-            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center justify-between">
-              <p className="text-red-400 font-medium">{error}</p>
+            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <p className="text-red-400 font-medium text-xs sm:text-sm">{error}</p>
               {error.includes("sign in") && (
                 <button
                   onClick={() => navigate("/signin")}

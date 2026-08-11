@@ -11,6 +11,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import API from "../services/api";
+import Sidebar from "../components/Sidebar";
 
 function Prediction() {
   const navigate = useNavigate();
@@ -65,23 +66,28 @@ function Prediction() {
   );
 
   return (
-    <section className="min-h-screen bg-[#0B0B12] px-10 py-8">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-10">
-        <div>
-          <h1 className="text-4xl font-bold text-white">AI Risk Prediction</h1>
-          <p className="text-gray-400 mt-2">
-            Repository-level technical debt & health prediction
-          </p>
-        </div>
+    <div className="flex flex-col lg:flex-row bg-[#0B0B12] min-h-screen overflow-x-hidden">
+      <Sidebar />
 
-        <button
-          onClick={() => navigate("/repositories")}
-          className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold transition"
-        >
-          + New Analysis
-        </button>
-      </div>
+      <section className="flex-1 w-full min-h-screen bg-[#0B0B12] px-4 sm:px-6 lg:px-10 py-6 lg:py-8 overflow-x-hidden">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-10">
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+              AI Risk Prediction
+            </h1>
+            <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2">
+              Repository-level technical debt & health prediction
+            </p>
+          </div>
+
+          <button
+            onClick={() => navigate("/repositories")}
+            className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-semibold transition text-sm sm:text-base min-h-[44px] flex items-center justify-center"
+          >
+            + New Analysis
+          </button>
+        </div>
 
       {/* Loading State */}
       {loading ? (
@@ -348,6 +354,7 @@ function Prediction() {
         </>
       )}
     </section>
+    </div>
   );
 }
 
