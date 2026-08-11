@@ -1,17 +1,6 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function CTA() {
-  const navigate = useNavigate();
-
-  const handleGetStartedClick = () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate("/dashboard");
-    } else {
-      navigate("/register");
-    }
-  };
-
   return (
     <section className="bg-[#0B0B12] px-12 py-24">
       <div className="max-w-5xl mx-auto text-center bg-[#161622] border border-purple-500/20 rounded-3xl p-14 relative overflow-hidden shadow-xl shadow-purple-500/10">
@@ -33,12 +22,12 @@ function CTA() {
           </p>
 
           <div className="flex justify-center gap-5 mt-10">
-            <button
-              onClick={handleGetStartedClick}
-              className="bg-purple-500 text-white px-7 py-3 rounded-xl shadow-lg shadow-purple-500/20 hover:bg-purple-600 hover:-translate-y-1 transition-all font-medium"
+            <Link
+              to="/register"
+              className="bg-purple-500 text-white px-7 py-3 rounded-xl shadow-lg shadow-purple-500/20 hover:bg-purple-600 hover:-translate-y-1 transition-all font-medium inline-block"
             >
               Get Started Free →
-            </button>
+            </Link>
           </div>
         </div>
       </div>

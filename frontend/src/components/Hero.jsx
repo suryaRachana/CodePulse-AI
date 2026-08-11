@@ -1,17 +1,6 @@
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 function Hero() {
-  const navigate = useNavigate();
-
-  const handleAnalyzeClick = () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate("/repositories");
-    } else {
-      navigate("/register");
-    }
-  };
-
   return (
     <section className="relative min-h-screen bg-[#0B0B12] flex items-center px-12 py-20 overflow-hidden">
       {/* Background Glow */}
@@ -36,12 +25,12 @@ function Hero() {
         </p>
 
         <div className="flex gap-5 mt-8">
-          <button
-            onClick={handleAnalyzeClick}
-            className="bg-purple-500 text-white px-6 py-3 rounded-xl shadow-lg shadow-purple-500/20 hover:bg-purple-600 transition font-medium"
+          <Link
+            to="/register"
+            className="bg-purple-500 text-white px-6 py-3 rounded-xl shadow-lg shadow-purple-500/20 hover:bg-purple-600 transition font-medium inline-block"
           >
             Analyze Repository →
-          </button>
+          </Link>
         </div>
       </div>
 
