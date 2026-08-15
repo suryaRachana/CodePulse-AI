@@ -1,13 +1,63 @@
+import os
+import logging
 import requests
+from urllib.parse import urlparse
 from concurrent.futures import ThreadPoolExecutor
+
+logger = logging.getLogger("github_service")
 
 _cache = {}
 
+class GitHubRateLimitError(Exception):
+    """Raised when GitHub API rate limit is exceeded (HTTP 403 / 429)."""
+    pass
+
+class GitHubNotFoundError(Exception):
+    """Raised when a GitHub repository is not found (HTTP 404)."""
+    pass
+
+class GitHubAPIError(Exception):
+    """Raised when GitHub API returns an upstream error (HTTP 5xx / 422)."""
+    pass
+
+def _get_github_headers():
+    headers = {"User-Agent": "CodePulse-AI"}
+    token = os.getenv("GITHUB_TOKEN") or os.getenv("GITHUB_PAT")
+    if token:
+        headers["Authorization"] = f"token {token}"
+    return headers
+
+def _log_github_response(endpoint: str, response: requests.Response):
+    remaining = response.headers.get("X-RateLimit-Remaining", "unknown")
+    limit = response.headers.get("X-RateLimit-Limit", "unknown")
+    logger.info(
+        f"GitHub API [{endpoint}] -> Status: {response.status_code} | RateLimit Remaining: {remaining}/{limit}"
+    )
+
 def _get_owner_and_repo(repository_url: str):
-    parts = repository_url.rstrip("/").split("/")
-    if len(parts) < 2:
+    if not repository_url or not isinstance(repository_url, str):
         raise ValueError("Invalid GitHub repository URL")
-    return parts[-2], parts[-1]
+
+    url = repository_url.strip()
+    if not url.startswith(("http://", "https://")):
+        url = "https://" + url
+
+    parsed = urlparse(url)
+    path_parts = [p for p in parsed.path.strip("/").split("/") if p]
+
+    if len(path_parts) < 2:
+        raise ValueError("Invalid GitHub repository URL. Format must be https://github.com/owner/repository")
+
+    owner = path_parts[0]
+    repo = path_parts[1]
+
+    if repo.endswith(".git"):
+        repo = repo[:-4]
+
+    if not owner or not repo:
+        raise ValueError("Invalid GitHub repository URL. Owner and repository name are required.")
+
+    return owner, repo
 
 
 def get_repository_info(repository_url: str):
@@ -17,14 +67,18 @@ def get_repository_info(repository_url: str):
     owner, repo = _get_owner_and_repo(repository_url)
     api_url = f"https://api.github.com/repos/{owner}/{repo}"
 
-    headers = {"User-Agent": "CodePulse-AI"}
+    headers = _get_github_headers()
     response = requests.get(api_url, headers=headers, timeout=10)
+    _log_github_response(f"repos/{owner}/{repo}", response)
 
     if response.status_code == 404:
-        raise ValueError("GitHub repository not found")
-
-    if response.status_code != 200:
-        raise ValueError("Failed to fetch repository information from GitHub")
+        raise GitHubNotFoundError(f"GitHub repository '{owner}/{repo}' not found. Please check the URL and ensure the repository is public.")
+    elif response.status_code in (403, 429):
+        remaining = response.headers.get("X-RateLimit-Remaining", "0")
+        logger.warning(f"GitHub API Rate Limit Exceeded for {owner}/{repo} (Remaining: {remaining})")
+        raise GitHubRateLimitError("GitHub API rate limit exceeded. Please wait a few minutes before trying again.")
+    elif response.status_code != 200:
+        raise GitHubAPIError(f"Failed to fetch repository information from GitHub (HTTP {response.status_code}).")
 
     data = response.json()
     return {
@@ -38,22 +92,28 @@ def get_repository_info(repository_url: str):
 
 
 def _fetch_source_contents(repository_url: str, default_branch: str):
-    cache_key = f"{repository_url}:{default_branch}"
+    owner, repo = _get_owner_and_repo(repository_url)
+    cache_key = f"{owner}/{repo}:{default_branch}"
     if cache_key in _cache:
         return _cache[cache_key]
 
-    owner, repo = _get_owner_and_repo(repository_url)
     tree_url = f"https://api.github.com/repos/{owner}/{repo}/git/trees/{default_branch}?recursive=1"
 
-    headers = {"User-Agent": "CodePulse-AI"}
+    headers = _get_github_headers()
     response = requests.get(tree_url, headers=headers, timeout=10)
+    _log_github_response(f"git/trees/{owner}/{repo}", response)
 
     if response.status_code != 200:
         # Fallback tree fetch if recursive fails
         tree_url_simple = f"https://api.github.com/repos/{owner}/{repo}/git/trees/{default_branch}"
-        response = requests.get(tree_url_simple, headers=headers, timeout=10)
-        if response.status_code != 200:
-            raise ValueError("Failed to fetch repository file tree")
+        response_simple = requests.get(tree_url_simple, headers=headers, timeout=10)
+        _log_github_response(f"git/trees_simple/{owner}/{repo}", response_simple)
+
+        if response.status_code in (403, 429) or response_simple.status_code in (403, 429):
+            logger.warning(f"GitHub API Rate Limit Exceeded for tree {owner}/{repo}")
+            raise GitHubRateLimitError("GitHub API rate limit exceeded while fetching repository files. Please wait a few minutes before trying again.")
+        elif response_simple.status_code != 200:
+            raise GitHubAPIError(f"Failed to fetch repository file tree from GitHub (HTTP {response_simple.status_code}).")
 
     tree_data = response.json()
     all_files = [item for item in tree_data.get("tree", []) if item.get("type") == "blob"]

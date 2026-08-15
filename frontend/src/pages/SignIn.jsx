@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
 import API from "../services/api";
 
 function SignIn() {
@@ -54,6 +55,45 @@ function SignIn() {
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    if (!credentialResponse.credential) {
+      setErrorMessage("Google authentication failed. No credential received.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await API.post("/auth/google", {
+        id_token: credentialResponse.credential,
+      });
+
+      if (response.data?.access_token) {
+        localStorage.setItem("token", response.data.access_token);
+        navigate("/dashboard");
+      } else {
+        setErrorMessage("Failed to obtain authentication token from server.");
+      }
+    } catch (error) {
+      console.error("Google login error:", error);
+      if (error.response?.data?.detail) {
+        setErrorMessage(error.response.data.detail);
+      } else if (error.request) {
+        setErrorMessage("Network error. Unable to connect to backend server.");
+      } else {
+        setErrorMessage("Google authentication failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setErrorMessage("Google Sign-In was cancelled or failed.");
+  };
+
   return (
     <section className="min-h-screen bg-[#0B0B12] flex items-center justify-center px-4 sm:px-6 py-8 sm:py-12">
       <div className="w-full max-w-md bg-[#161622] border border-purple-500/20 rounded-2xl p-6 sm:p-8 shadow-xl shadow-purple-500/10">
@@ -83,7 +123,28 @@ function SignIn() {
           </div>
         )}
 
-        <form onSubmit={handleLogin} className="mt-6 space-y-4">
+        {/* Google Authentication */}
+        <div className="mt-6 flex justify-center w-full min-h-[44px]">
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
+            useOneTap
+            theme="filled_black"
+            shape="pill"
+            size="large"
+            text="continue_with"
+            width="100%"
+          />
+        </div>
+
+        {/* Divider */}
+        <div className="my-5 flex items-center">
+          <div className="flex-grow border-t border-gray-700"></div>
+          <span className="px-3 text-gray-400 text-xs uppercase tracking-wider">Or email</span>
+          <div className="flex-grow border-t border-gray-700"></div>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="text-gray-400 text-xs uppercase tracking-wider block mb-1">
               Email Address

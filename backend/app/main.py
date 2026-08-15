@@ -1,14 +1,38 @@
 import os
 import ast
 import re
+import secrets
+
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
 
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, SessionLocal
 from app import models
-from app.schemas import UserCreate, UserLogin,DashboardResponse,PredictionRequest, PredictionResponse,HistoryResponse,RepositoryAnalysisRequest,RepositoryPredictionRequest, UserProfileResponse, RefactorRequest, RefactorResponse
-from app.auth import create_user, login_user,create_access_token,get_current_user,verify_token
+from app.schemas import (
+    UserCreate,
+    UserLogin,
+    GoogleLoginRequest,
+    DashboardResponse,
+    PredictionRequest,
+    PredictionResponse,
+    HistoryResponse,
+    RepositoryAnalysisRequest,
+    RepositoryPredictionRequest,
+    UserProfileResponse,
+    RefactorRequest,
+    RefactorResponse,
+)
+from app.auth import (
+    create_user,
+    login_user,
+    create_access_token,
+    get_current_user,
+    verify_token,
+    hash_password,
+)
 from fastapi.security import OAuth2PasswordRequestForm
 from app.services.github_service import (
     get_repository_info,
@@ -17,7 +41,10 @@ from app.services.github_service import (
     calculate_complexity,
     calculate_maintainability_index,
     calculate_duplicate_code,
-    calculate_repository_health
+    calculate_repository_health,
+    GitHubRateLimitError,
+    GitHubNotFoundError,
+    GitHubAPIError,
 )
 raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
 allowed_origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
@@ -241,7 +268,76 @@ def login(
         "access_token": access_token,
         "token_type": "bearer"
     }
-    
+
+
+@app.post("/auth/google")
+def google_auth(
+    payload: GoogleLoginRequest,
+    db: Session = Depends(get_db)
+):
+    if not payload.id_token:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Google ID token is required"
+        )
+
+    google_client_id = os.getenv("GOOGLE_CLIENT_ID")
+
+    try:
+        id_info = google_id_token.verify_oauth2_token(
+            payload.id_token,
+            google_requests.Request(),
+            audience=google_client_id if google_client_id else None
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid Google ID token: {str(e)}"
+        )
+
+    if not id_info.get("email_verified"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Google email is not verified"
+        )
+
+    raw_email = id_info.get("email")
+    if not raw_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email not provided by Google token"
+        )
+
+    normalized_email = raw_email.strip().lower()
+    name = id_info.get("name") or normalized_email.split("@")[0]
+
+    db_user = db.query(models.User).filter(
+        models.User.email == normalized_email
+    ).first()
+
+    if not db_user:
+        # Create user with a secure random password hash to satisfy hashed_password NOT NULL constraint
+        random_pwd = secrets.token_urlsafe(32)
+        hashed_pwd = hash_password(random_pwd)
+
+        db_user = models.User(
+            name=name,
+            email=normalized_email,
+            hashed_password=hashed_pwd
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+
+    access_token = create_access_token(
+        data={"sub": db_user.email}
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
+
 
 @app.get("/dashboard", response_model=DashboardResponse)
 def get_dashboard():
@@ -480,6 +576,24 @@ def analyze_repository(
             detail=str(e)
         )
 
+    except GitHubNotFoundError as e:
+        raise HTTPException(
+            status_code=404,
+            detail=str(e)
+        )
+
+    except GitHubRateLimitError as e:
+        raise HTTPException(
+            status_code=429,
+            detail=str(e)
+        )
+
+    except GitHubAPIError as e:
+        raise HTTPException(
+            status_code=502,
+            detail=str(e)
+        )
+
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -566,6 +680,12 @@ def predict_repository(
 
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except GitHubNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except GitHubRateLimitError as e:
+        raise HTTPException(status_code=429, detail=str(e))
+    except GitHubAPIError as e:
+        raise HTTPException(status_code=502, detail=str(e))
     except Exception as e:
         raise HTTPException(
             status_code=500,
